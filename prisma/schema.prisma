@@ -9,4 +9,102 @@ datasource db {
   provider = "postgresql"
 }
 
-// Domain models will be added with their corresponding features.
+enum UserRole {
+  USER
+  REVIEWER
+  ADMIN
+}
+
+enum AccessStatus {
+  ACTIVE
+  REVOKED
+}
+
+model User {
+  id             String          @id @default(uuid()) @db.Uuid
+  email          String          @unique
+  emailVerified  Boolean         @default(false)
+  displayName    String
+  image          String?
+  role           UserRole        @default(USER)
+  consentVersion String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+  accounts       AuthAccount[]
+  sessions       AuthSession[]
+  accessApproval AccessApproval?
+  emailActions   EmailAction[]
+}
+
+model AuthAccount {
+  id                    String    @id @default(uuid()) @db.Uuid
+  accountId             String
+  providerId            String
+  userId                String    @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model AuthSession {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+
+  @@index([userId])
+}
+
+model AuthVerification {
+  id         String   @id @default(uuid()) @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model AccessApproval {
+  id        String       @id @default(uuid()) @db.Uuid
+  email     String       @unique
+  userId    String?      @unique @db.Uuid
+  user      User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status    AccessStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model AuthRateLimit {
+  id          String @id @default(uuid()) @db.Uuid
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+}
+
+model EmailAction {
+  tokenHash   String   @id
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetEmail String
+  expiresAt   DateTime
+
+  @@index([userId])
+}

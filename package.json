@@ -22,7 +22,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:validate": "prisma validate",
     "api:generate": "pnpm db:generate && pnpm --filter @cat-care/shared build && pnpm --filter @cat-care/api build && node apps/api/dist/export-openapi.js && pnpm --filter @cat-care/api-client generate && prettier --write packages/api-client/openapi.json packages/api-client/src/schema.d.ts",
-    "env:setup": "node scripts/setup-env.mjs"
+    "env:setup": "node scripts/setup-env.mjs",
+    "pilot:access": "node apps/api/dist/manage-access.js"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

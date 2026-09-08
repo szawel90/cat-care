@@ -6,12 +6,15 @@ import { getApiEnvironment } from './environment';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleDestroy {
   constructor() {
-    const adapter = new PrismaPg({
-      connectionString: getApiEnvironment().databaseUrl,
-      connectionTimeoutMillis: 2000,
-      query_timeout: 2000,
-      max: 3,
-    });
+    const adapter = new PrismaPg(
+      {
+        connectionString: getApiEnvironment().databaseUrl,
+        connectionTimeoutMillis: 2000,
+        query_timeout: 2000,
+        max: 3,
+      },
+      { schema: new URL(getApiEnvironment().databaseUrl).searchParams.get('schema') ?? 'public' },
+    );
     super({ adapter });
   }
 

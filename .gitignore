@@ -64,3 +64,5 @@ apps/web/next-env.d.ts
 
 # Local assistant instructions
 CLAUDE.md
+
+.next-dev/

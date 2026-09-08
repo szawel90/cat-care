@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import { AuthService } from './auth/auth.service';
+import { registerAuthRoutes } from './auth/auth-routes';
 import { RequestMethod, ValidationPipe, type LoggerService } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
@@ -16,7 +18,7 @@ export function configureApi(app: NestFastifyApplication) {
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
   );
-  app.enableCors({ origin: getApiEnvironment().webOrigin });
+  app.enableCors({ origin: getApiEnvironment().webOrigin, credentials: true });
 }
 
 export function createOpenApiDocument(app: NestFastifyApplication) {
@@ -36,5 +38,6 @@ export async function createApi(logger?: false | LoggerService): Promise<NestFas
     logger,
   });
   configureApi(app);
+  registerAuthRoutes(app.getHttpAdapter().getInstance(), app.get(AuthService));
   return app;
 }
