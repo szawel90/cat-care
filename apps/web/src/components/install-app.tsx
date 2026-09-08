@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 interface InstallPrompt extends Event {
@@ -7,6 +8,7 @@ interface InstallPrompt extends Event {
 }
 
 export function InstallApp() {
+  const t = useTranslations('Install');
   const [prompt, setPrompt] = useState<InstallPrompt | null>(null);
   const [installed, setInstalled] = useState(false);
   useEffect(() => {
@@ -30,12 +32,8 @@ export function InstallApp() {
   if (installed) return null;
   return (
     <details className="install">
-      <summary>Add Cat Care to your home screen</summary>
-      <p className="hint">
-        On iPhone, open this page in Safari, choose Share, then Add to Home Screen. On Android, use
-        Install app or Add to Home screen in your browser menu. An internet connection is needed to
-        use your account.
-      </p>
+      <summary>{t('title')}</summary>
+      <p className="hint">{t('help')}</p>
       {prompt && (
         <button
           className="primary"
@@ -45,7 +43,7 @@ export function InstallApp() {
             setPrompt(null);
           }}
         >
-          Install Cat Care
+          {t('button')}
         </button>
       )}
     </details>

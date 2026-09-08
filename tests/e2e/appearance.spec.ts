@@ -1,4 +1,5 @@
-import { test, expect, type BrowserContext, type Page } from '@playwright/test';
+import { type BrowserContext, type Page } from '@playwright/test';
+import { test, expect } from './fixtures';
 import AxeBuilder from '@axe-core/playwright';
 
 const origin = 'http://127.0.0.1:3330';
@@ -13,6 +14,7 @@ async function signIn(context: BrowserContext, email: string) {
 }
 
 async function accessible(page: Page) {
+  await expect(page).toHaveTitle('Cat Care');
   const google = page.getByRole('button', { name: 'Continue with Google', exact: true });
   if (await google.count()) {
     await expect(google).toBeEnabled();

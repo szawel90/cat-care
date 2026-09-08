@@ -115,7 +115,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AccountPreferencesDto"
+                "$ref": "#/components/schemas/UpdateAccountPreferencesDto"
               }
             }
           }
@@ -215,11 +215,27 @@
         "properties": {
           "themePreference": {
             "type": "string",
-            "enum": ["system", "light", "dark"],
-            "default": "system"
+            "enum": ["system", "light", "dark"]
+          },
+          "languagePreference": {
+            "type": "string",
+            "enum": ["system", "en", "pl"]
           }
         },
-        "required": ["themePreference"]
+        "required": ["themePreference", "languagePreference"]
+      },
+      "UpdateAccountPreferencesDto": {
+        "type": "object",
+        "properties": {
+          "themePreference": {
+            "type": "string",
+            "enum": ["system", "light", "dark"]
+          },
+          "languagePreference": {
+            "type": "string",
+            "enum": ["system", "en", "pl"]
+          }
+        }
       },
       "ExportedLoginMethodDto": {
         "type": "object",
@@ -255,6 +271,10 @@
             "type": "string",
             "enum": ["system", "light", "dark"]
           },
+          "languagePreference": {
+            "type": "string",
+            "enum": ["system", "en", "pl"]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -272,6 +292,7 @@
           "email",
           "emailVerified",
           "themePreference",
+          "languagePreference",
           "createdAt",
           "accounts"
         ]

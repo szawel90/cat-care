@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ThemePreference } from '../generated/prisma/enums';
+import { ThemePreference, LanguagePreference } from '../generated/prisma/enums';
 
 export class ExportedLoginMethodDto {
   @ApiProperty() providerId!: string;
@@ -11,6 +11,7 @@ export class ExportedProfileDto {
   @ApiProperty({ format: 'email' }) email!: string;
   @ApiProperty() emailVerified!: boolean;
   @ApiProperty({ enum: ThemePreference }) themePreference!: ThemePreference;
+  @ApiProperty({ enum: LanguagePreference }) languagePreference!: LanguagePreference;
   @ApiProperty({ type: String, format: 'date-time' }) createdAt!: Date;
   @ApiProperty({ type: [ExportedLoginMethodDto] }) accounts!: ExportedLoginMethodDto[];
 }

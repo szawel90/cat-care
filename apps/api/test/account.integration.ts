@@ -36,6 +36,7 @@ describe('Account lifecycle and access isolation', () => {
       '202609080002_account_foundation',
       '202609080003_email_actions',
       '202609080004_account_theme',
+      '202609090001_account_language',
     ]) {
       const sql = await readFile(
         resolve(__dirname, '../../../prisma/migrations', name, 'migration.sql'),
@@ -44,7 +45,7 @@ describe('Account lifecycle and access isolation', () => {
       for (const statement of sql.split(';').filter((part) => part.trim())) {
         await admin.$executeRawUnsafe(
           statement.replace(
-            /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus|ThemePreference)"/g,
+            /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus|ThemePreference|LanguagePreference)"/g,
             `"${schema}"."$1"`,
           ),
         );
@@ -220,13 +221,16 @@ describe('Account lifecycle and access isolation', () => {
     const user = await prisma.user.findUniqueOrThrow({ where: { email: address } });
     expect(user.themePreference).toBe('system');
     const initial = await first('/v1/account/preferences');
-    expect(initial.json()).toEqual({ themePreference: 'system' });
+    expect(initial.json()).toEqual({ themePreference: 'system', languagePreference: 'system' });
     expect(initial.headers['cache-control']).toBe('no-store');
     for (const themePreference of ['dark', 'light', 'system']) {
       const saved = await first('/v1/account/preferences', { themePreference });
       expect(saved.statusCode).toBe(200);
       expect(saved.headers['cache-control']).toBe('no-store');
-      expect((await otherDevice('/v1/account/preferences')).json()).toEqual({ themePreference });
+      expect((await otherDevice('/v1/account/preferences')).json()).toEqual({
+        themePreference,
+        languagePreference: 'system',
+      });
       expect((await otherOwner('/v1/account/preferences')).json().themePreference).toBe('system');
       expect((await first('/v1/account/export')).json().profile.themePreference).toBe(
         themePreference,
@@ -259,6 +263,78 @@ describe('Account lifecycle and access isolation', () => {
     expect((await first('/v1/account/preferences', { themePreference: 'dark' })).statusCode).toBe(
       403,
     );
+  });
+
+  it('persists language independently from theme, isolates owners and localizes account email', async () => {
+    const address = 'polish-language@example.test';
+    await prisma.accessApproval.create({ data: { email: address } });
+    const first = browser();
+    expect(
+      (
+        await first(
+          '/api/auth/sign-up/email',
+          { name: 'Alex', email: address, password },
+          { 'x-cat-care-locale': 'pl' },
+        )
+      ).statusCode,
+    ).toBe(200);
+    await first(link(address, 'Potwierdź'));
+    await signIn(address, first);
+    const otherDevice = await signIn(address);
+    const other = await register('language-owner-two@example.test');
+    await other(link('language-owner-two@example.test', 'Verify'));
+    await signIn('language-owner-two@example.test', other);
+    expect((await first('/v1/account/preferences')).json()).toEqual({
+      themePreference: 'system',
+      languagePreference: 'system',
+    });
+    await first('/v1/account/preferences', { themePreference: 'dark' });
+    for (const languagePreference of ['pl', 'en', 'system']) {
+      const saved = await first('/v1/account/preferences', { languagePreference });
+      expect(saved.statusCode).toBe(200);
+      expect(saved.json()).toEqual({ languagePreference, themePreference: 'dark' });
+      expect((await otherDevice('/v1/account/preferences')).json()).toEqual(saved.json());
+      expect((await other('/v1/account/preferences')).json().languagePreference).toBe('system');
+      expect((await first('/v1/account/export')).json().profile.languagePreference).toBe(
+        languagePreference,
+      );
+    }
+    for (const payload of [
+      { languagePreference: null },
+      { languagePreference: 'de' },
+      { languagePreference: ['pl'] },
+      { languagePreference: 'pl', userId: 'someone-else' },
+    ]) {
+      expect((await first('/v1/account/preferences', payload)).statusCode).toBe(400);
+    }
+    for (const origin of ['', 'null', 'https://untrusted.example']) {
+      expect(
+        (await first('/v1/account/preferences', { languagePreference: 'pl' }, { origin }))
+          .statusCode,
+      ).toBe(403);
+    }
+    expect(
+      (await browser()('/v1/account/preferences', { languagePreference: 'pl' })).statusCode,
+    ).toBe(401);
+    await first('/v1/account/preferences', { languagePreference: 'pl' });
+    await first('/v1/account/preferences', { themePreference: 'light' });
+    expect((await first('/v1/account/preferences')).json()).toEqual({
+      languagePreference: 'pl',
+      themePreference: 'light',
+    });
+    await first(
+      '/api/auth/request-password-reset',
+      { email: address, redirectTo: '/reset-password' },
+      { 'x-cat-care-locale': 'en' },
+    );
+    expect(mail.findLast((item) => item.to === address)?.subject).toBe('Zmień hasło do Cat Care');
+    expect(link(address, 'Zmień')).toContain('/reset-password');
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: address } });
+    await prisma.accessApproval.update({ where: { userId: user.id }, data: { status: 'REVOKED' } });
+    expect((await first('/v1/account/preferences', { languagePreference: 'en' })).statusCode).toBe(
+      403,
+    );
+    expect((await first('/v1/account/preferences')).statusCode).toBe(403);
   });
 
   it('resets passwords once, invalidates existing sessions, and rejects cross-user session revocation', async () => {

@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 
 import { useRef, useState } from 'react';
 import { CircleAlert } from 'lucide-react';
@@ -6,6 +7,7 @@ import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
 
 export function useUnsavedChangesDialog() {
+  const t = useTranslations('Unsaved');
   const [open, setOpen] = useState(false);
   const resolve = useRef<((discard: boolean) => void) | null>(null);
   const keepEditing = useRef<HTMLButtonElement>(null);
@@ -51,13 +53,13 @@ export function useUnsavedChangesDialog() {
             <CircleAlert aria-hidden="true" />
           </span>
           <div>
-            <DialogTitle>Unsaved changes</DialogTitle>
-            <DialogDescription>Your edits have not been saved.</DialogDescription>
+            <DialogTitle>{t('title')}</DialogTitle>
+            <DialogDescription>{t('description')}</DialogDescription>
           </div>
         </div>
         <div className="dialog-actions">
           <Button ref={keepEditing} type="button" onClick={() => finish(false)}>
-            Keep editing
+            {t('keep')}
           </Button>
           <Button
             variant="outline"
@@ -65,7 +67,7 @@ export function useUnsavedChangesDialog() {
             type="button"
             onClick={() => finish(true)}
           >
-            Discard changes
+            {t('discard')}
           </Button>
         </div>
       </DialogContent>

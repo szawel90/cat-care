@@ -5,7 +5,7 @@ Cat Care is a planned assistant for cat owners, combining cat profiles, structur
 ## Technologies
 
 - TypeScript, React and Next.js
-- shadcn/ui, Radix UI and Tailwind CSS
+- shadcn/ui, Radix UI, Tailwind CSS and next-intl
 - NestJS with Fastify and OpenAPI
 - PostgreSQL, pgvector and Prisma
 - pnpm workspaces

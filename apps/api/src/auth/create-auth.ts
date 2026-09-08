@@ -6,9 +6,17 @@ import { AccessPolicy, ACCESS_DENIED } from './access-policy';
 import { normalizeEmail, type AuthSettings } from './auth-settings';
 import type { MailSender } from './mail-sender';
 import { createHash } from 'node:crypto';
+import { localizedMail, mailLanguage } from './localized-mail';
 
 export function createAuth(prisma: PrismaService, settings: AuthSettings, sendMail: MailSender) {
   const access = new AccessPolicy(prisma);
+  async function languageForMail(userId: string, request?: Request) {
+    const account = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { languagePreference: true },
+    });
+    return mailLanguage(account?.languagePreference, request?.headers.get('x-cat-care-locale'));
+  }
   const tokenHash = (token: string) => createHash('sha256').update(token).digest('hex');
   async function rememberEmail(token: string, userId: string, targetEmail: string) {
     await prisma.emailAction.upsert({
@@ -87,23 +95,21 @@ export function createAuth(prisma: PrismaService, settings: AuthSettings, sendMa
       },
       changeEmail: {
         enabled: true,
-        sendChangeEmailConfirmation: async ({ user, newEmail, url, token }) => {
+        sendChangeEmailConfirmation: async ({ user, newEmail, url, token }, request) => {
           await rememberEmail(token, user.id, newEmail);
           await sendMail({
             to: user.email,
-            subject: 'Approve your Cat Care email change',
-            text: `Approve changing your email address to ${newEmail}:\n\n${url}\n\nThen confirm the link sent to your new address.`,
+            ...localizedMail('change', await languageForMail(user.id, request), url, newEmail),
           });
         },
       },
       deleteUser: {
         enabled: true,
         deleteTokenExpiresIn: 3600,
-        sendDeleteAccountVerification: async ({ user, url }) =>
+        sendDeleteAccountVerification: async ({ user, url }, request) =>
           sendMail({
             to: user.email,
-            subject: 'Confirm Cat Care account deletion',
-            text: `This permanently deletes your account. Confirm only if you requested it:\n\n${url}`,
+            ...localizedMail('delete', await languageForMail(user.id, request), url),
           }),
         beforeDelete: async (user) => {
           await access.requireAccess(user.id);
@@ -125,11 +131,10 @@ export function createAuth(prisma: PrismaService, settings: AuthSettings, sendMa
       maxPasswordLength: 128,
       autoSignIn: false,
       revokeSessionsOnPasswordReset: true,
-      sendResetPassword: async ({ user, url }) =>
+      sendResetPassword: async ({ user, url }, request) =>
         sendMail({
           to: user.email,
-          subject: 'Reset your Cat Care password',
-          text: `Use this one-time link to reset your password:\n\n${url}\n\nIf you did not request this, you can ignore this message.`,
+          ...localizedMail('reset', await languageForMail(user.id, request), url),
         }),
     },
     emailVerification: {
@@ -137,12 +142,11 @@ export function createAuth(prisma: PrismaService, settings: AuthSettings, sendMa
       sendOnSignIn: true,
       autoSignInAfterVerification: false,
       expiresIn: 3600,
-      sendVerificationEmail: async ({ user, url, token }) => {
+      sendVerificationEmail: async ({ user, url, token }, request) => {
         await rememberEmail(token, user.id, user.email);
         await sendMail({
           to: user.email,
-          subject: 'Verify your Cat Care email',
-          text: `Confirm your email address to continue to Cat Care:\n\n${url}\n\nIf you did not request this, you can ignore this message.`,
+          ...localizedMail('verify', await languageForMail(user.id, request), url),
         });
       },
       afterEmailVerification: async (user) => {

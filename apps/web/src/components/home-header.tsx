@@ -1,6 +1,8 @@
 'use client';
+import { useTranslations } from 'next-intl';
 
 import Image from 'next/image';
+import { GuestLanguageSwitcher } from './language-settings';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -9,6 +11,7 @@ import { AccountMenu } from './account-menu';
 import { Button } from './ui/button';
 
 export function HomeHeader() {
+  const t = useTranslations('Common');
   const { data: session, error: sessionError, isPending } = authClient.useSession();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -21,7 +24,7 @@ export function HomeHeader() {
       if (result.error) throw new Error();
       router.refresh();
     } catch {
-      setError('Could not sign out. Please try again.');
+      setError('signOutError');
     } finally {
       setBusy(false);
     }
@@ -29,7 +32,7 @@ export function HomeHeader() {
   return (
     <>
       <header className="site-header">
-        <Link className="brand" href="/" aria-label="Cat Care home">
+        <Link className="brand" href="/" aria-label={t('home')}>
           <Image src="/brand.svg" alt="" width={35} height={35} />
           cat care<span>.</span>
         </Link>
@@ -41,16 +44,23 @@ export function HomeHeader() {
             onSignOut={() => void signOut()}
           />
         ) : (
-          <nav aria-label="Account" className="guest-navigation" aria-busy={isPending}>
-            <Button asChild variant="outline">
-              <Link href="/login">Sign in</Link>
-            </Button>
-          </nav>
+          <div className="guest-account-actions">
+            <GuestLanguageSwitcher />
+            <nav
+              aria-label={t('accountNavigation')}
+              className="guest-navigation"
+              aria-busy={isPending}
+            >
+              <Button asChild variant="outline">
+                <Link href="/login">{t('signIn')}</Link>
+              </Button>
+            </nav>
+          </div>
         )}
       </header>
       {error && (
         <p className="feedback error home-error" role="alert">
-          {error}
+          {t('signOutError')}
         </p>
       )}
     </>

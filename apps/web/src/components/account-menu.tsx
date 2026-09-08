@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 
 import Link from 'next/link';
 import type { MouseEventHandler } from 'react';
@@ -25,13 +26,14 @@ export function AccountMenu({
   onSettings: () => void;
   onSignOut: () => void;
 }) {
+  const t = useTranslations('Common');
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           className="user-menu-trigger"
-          aria-label={'Account menu for ' + user.name}
+          aria-label={t('accountMenu', { name: user.name })}
           disabled={busy}
         >
           <span className="avatar user-avatar" aria-hidden="true">
@@ -45,7 +47,7 @@ export function AccountMenu({
         <DropdownMenuItem asChild className="user-menu-profile">
           <Link
             href="/account"
-            aria-label={'View profile for ' + user.name}
+            aria-label={t('viewProfile', { name: user.name })}
             onClick={onProfileClick}
           >
             <strong>{user.name}</strong>
@@ -55,12 +57,12 @@ export function AccountMenu({
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onSettings}>
           <Settings aria-hidden="true" />
-          Settings
+          {t('settings')}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onSignOut}>
           <LogOut aria-hidden="true" />
-          Sign out
+          {t('signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

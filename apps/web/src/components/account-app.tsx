@@ -1,6 +1,9 @@
 'use client';
 
 import Image from 'next/image';
+import { useTranslations, useFormatter } from 'next-intl';
+import { accountMessage, authErrorKey, type AccountMessage } from '@/i18n/messages';
+import { LanguageSettings, GuestLanguageSwitcher } from './language-settings';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
@@ -20,28 +23,28 @@ type Session = typeof client.$Infer.Session.session;
 type ConnectedAccount = { id: string; providerId: string; accountId: string };
 type Options = { google: boolean; facebook: boolean; emailPassword: boolean };
 
-async function check<T extends { error: { message?: string } | null }>(
-  result: Promise<T>,
-): Promise<T> {
+async function check<
+  T extends { error: { message?: string; code?: string; status?: number } | null },
+>(result: Promise<T>): Promise<T> {
   const response = await result;
-  if (response.error)
-    throw new Error(response.error.message || 'Something went wrong. Please try again.');
+  if (response.error) throw new Error(authErrorKey(response.error));
   return response;
 }
 
 function PasswordField({
   id,
-  label = 'Password',
+  label,
   newPassword = false,
 }: {
   id: string;
   label?: string;
   newPassword?: boolean;
 }) {
+  const t = useTranslations('Account');
   const [visible, setVisible] = useState(false);
   return (
     <div className="field">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id}>{label ?? t('password')}</Label>
       <div className="password-wrap">
         <Input
           id={id}
@@ -55,28 +58,29 @@ function PasswordField({
         <Button
           type="button"
           className="eye"
-          aria-label={visible ? 'Hide password' : 'Show password'}
+          aria-label={visible ? t('hidePassword') : t('showPassword')}
           aria-pressed={visible}
           onClick={() => setVisible(!visible)}
         >
           {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
         </Button>
       </div>
-      {newPassword && <p className="hint">Use at least 12 characters.</p>}
+      {newPassword && <p className="hint">{t('passwordHint')}</p>}
     </div>
   );
 }
 
-function EmailField({ id = 'email', label = 'Email address' }: { id?: string; label?: string }) {
+function EmailField({ id = 'email', label }: { id?: string; label?: string }) {
+  const t = useTranslations('Account');
   return (
     <div className="field">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id}>{label ?? t('email')}</Label>
       <Input
         id={id}
         name={id}
         type="email"
         autoComplete="email"
-        placeholder="you@example.com"
+        placeholder={t('emailPlaceholder')}
         required
         maxLength={254}
       />
@@ -85,13 +89,15 @@ function EmailField({ id = 'email', label = 'Email address' }: { id?: string; la
 }
 
 export function AccountApp({ view }: { view: View }) {
+  const t = useTranslations('Account');
+  const format = useFormatter();
   const router = useRouter();
   const params = useSearchParams();
   const { data: current, isPending, error: sessionError, refetch } = client.useSession();
   const [options, setOptions] = useState<Options | null>(null);
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState('');
-  const [error, setError] = useState('');
+  const [notice, setNotice] = useState<AccountMessage | ''>('');
+  const [error, setError] = useState<AccountMessage | ''>('');
   const requestedTab = params.get('settings');
   const settingsOpen =
     view === 'account' && ['profile', 'security', 'data'].includes(requestedTab ?? '');
@@ -120,8 +126,7 @@ export function AccountApp({ view }: { view: View }) {
       })
       .then(setOptions)
       .catch(() => {
-        if (!controller.signal.aborted)
-          setError('The account service is unavailable. Please try again shortly.');
+        if (!controller.signal.aborted) setError('serviceUnavailable');
       });
     return () => controller.abort();
   }, []);
@@ -147,7 +152,7 @@ export function AccountApp({ view }: { view: View }) {
           setSecurityLoaded(true);
         })
         .catch(() => {
-          if (active) setError('Could not load account security. Please sign in again.');
+          if (active) setError('securityUnavailable');
         });
       return () => {
         active = false;
@@ -162,7 +167,7 @@ export function AccountApp({ view }: { view: View }) {
     try {
       await action();
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : 'Please try again.');
+      setError(accountMessage(failure instanceof Error ? failure.message : undefined));
     } finally {
       setBusy(false);
     }
@@ -192,7 +197,7 @@ export function AccountApp({ view }: { view: View }) {
   const social = (link = false) =>
     run(async () => {
       if (!options?.google) {
-        setNotice('Google sign-in is being configured. Please use email for now.');
+        setNotice('googleUnavailable');
         return;
       }
       if (link)
@@ -223,13 +228,13 @@ export function AccountApp({ view }: { view: View }) {
           onClick={() => void social()}
         >
           <Image src="/google.svg" alt="" width={19} height={19} />
-          Continue with Google
+          {t('google')}
         </Button>
         <Button className="provider" type="button" disabled>
           <Image src="/facebook.svg" alt="" width={19} height={19} />
-          Continue with Facebook
+          {t('facebook')}
         </Button>
-        <div className="separator">or continue with email</div>
+        <div className="separator">{t('emailAlternative')}</div>
       </>
     );
   }
@@ -239,16 +244,13 @@ export function AccountApp({ view }: { view: View }) {
       {(error || params.get('error')) && (
         <div className="feedback error" role="alert">
           <CircleAlert aria-hidden="true" />
-          <span>
-            {error ||
-              'This link or sign-in attempt could not be completed. Try again, or request a new email link.'}
-          </span>
+          <span>{error ? t(error) : t('linkError')}</span>
         </div>
       )}
       {notice && (
         <div className="feedback" role="status">
           <CircleCheck aria-hidden="true" />
-          <span>{notice}</span>
+          <span>{t(notice)}</span>
         </div>
       )}
     </>
@@ -257,7 +259,7 @@ export function AccountApp({ view }: { view: View }) {
   return (
     <>
       <a className="skip-link" href="#main-content">
-        Skip to main content
+        {t('skip')}
       </a>
       <header className="site-header">
         <Link
@@ -279,7 +281,7 @@ export function AccountApp({ view }: { view: View }) {
             }
           }}
           className="brand"
-          aria-label="Cat Care home"
+          aria-label={t('home')}
         >
           <Image src="/brand.svg" alt="" width={35} height={35} />
           cat care<span>.</span>
@@ -313,10 +315,13 @@ export function AccountApp({ view }: { view: View }) {
             onSignOut={() => void signOut()}
           />
         ) : (
-          <span className="header-note">
-            <i />
-            Private pilot
-          </span>
+          <div className="guest-account-actions">
+            <GuestLanguageSwitcher />
+            <span className="header-note">
+              <i />
+              {t('pilot')}
+            </span>
+          </div>
         )}
       </header>
       <main
@@ -325,22 +330,14 @@ export function AccountApp({ view }: { view: View }) {
         className={view === 'account' ? 'workspace workspace-account' : 'workspace'}
       >
         {view !== 'account' && (
-          <aside className="story" aria-label="About Cat Care">
-            <div className="eyebrow">A little closer, every day</div>
-            <h2>
-              Good care starts
-              <br />
-              with <em>understanding.</em>
-            </h2>
-            <p>
-              A thoughtful space for you and your cat.
-              <br />
-              One account. Their story, all together.
-            </p>
+          <aside className="story" aria-label={t('about')}>
+            <div className="eyebrow">{t('storyEyebrow')}</div>
+            <h2>{t.rich('storyTitle', { br: () => <br />, em: (chunks) => <em>{chunks}</em> })}</h2>
+            <p>{t.rich('storyText', { br: () => <br /> })}</p>
             <div className="art">
               <Image src="/cat.svg" alt="" fill sizes="(max-width: 740px) 0px, 500px" priority />
             </div>
-            <div className="story-foot">Made for the small things that matter.</div>
+            <div className="story-foot">{t('storyFooter')}</div>
           </aside>
         )}
         <section className="form-column">
@@ -348,16 +345,16 @@ export function AccountApp({ view }: { view: View }) {
             {view !== 'account' && feedback}
             {view === 'login' && (
               <>
-                <h1>Welcome back.</h1>
-                <p className="subtitle">A familiar place for you and your cat.</p>
+                <h1>{t('welcome')}</h1>
+                <p className="subtitle">{t('welcomeDescription')}</p>
                 {params.get('verified') && (
                   <p className="feedback" role="status">
-                    Your email is verified. You can sign in now.
+                    {t('verifiedNotice')}
                   </p>
                 )}
                 {params.get('deleted') && (
                   <p className="feedback" role="status">
-                    Your account has been deleted.
+                    {t('deletedNotice')}
                   </p>
                 )}
                 {providers()}
@@ -377,18 +374,18 @@ export function AccountApp({ view }: { view: View }) {
                     <EmailField />
                     <PasswordField id="password" />
                     <p className="right-link">
-                      <Link href="/forgot-password">Forgot password?</Link>
+                      <Link href="/forgot-password">{t('forgotPassword')}</Link>
                     </p>
                     <Button className="primary" type="submit">
-                      {busy ? 'Signing in…' : 'Sign in'}
+                      {busy ? t('signingIn') : t('signIn')}
                     </Button>
                   </fieldset>
                 </form>
                 <p className="bottom-link">
-                  New to Cat Care? <Link href="/register">Create an account</Link>
+                  {t('newHere')} <Link href="/register">{t('createAnAccount')}</Link>
                 </p>
                 <details className="sign-in-help">
-                  <summary>Need help signing in?</summary>
+                  <summary>{t('signInHelp')}</summary>
                   <Button
                     className="text-button resend"
                     disabled={busy}
@@ -397,30 +394,28 @@ export function AccountApp({ view }: { view: View }) {
                         const address = (
                           document.getElementById('email') as HTMLInputElement
                         ).value.trim();
-                        if (!address) throw new Error('Enter your email address above first.');
+                        if (!address) throw new Error('enterEmail');
                         await check(
                           client.sendVerificationEmail({
                             email: address,
                             callbackURL: '/login?verified=1',
                           }),
                         );
-                        setNotice('If your account needs verification, a new link is on its way.');
+                        setNotice('verificationResent');
                       })
                     }
                   >
-                    Resend verification email
+                    {t('resendVerification')}
                   </Button>
-                  <div className="pilot-note">
-                    Access is currently available to approved email addresses.
-                  </div>
+                  <div className="pilot-note">{t('pilotAccess')}</div>
                 </details>
               </>
             )}
 
             {view === 'register' && (
               <>
-                <h1>Make yourself at home.</h1>
-                <p className="subtitle">Create your account with an approved email address.</p>
+                <h1>{t('registerTitle')}</h1>
+                <p className="subtitle">{t('registerDescription')}</p>
                 {providers()}
                 <form
                   onSubmit={submit(async (data) => {
@@ -432,30 +427,30 @@ export function AccountApp({ view }: { view: View }) {
                         callbackURL: '/login?verified=1',
                       }),
                     );
-                    setNotice('Check your email to verify your address before signing in.');
+                    setNotice('verifyBeforeSignIn');
                   })}
                 >
                   <fieldset disabled={busy}>
                     <div className="field">
-                      <Label htmlFor="name">Display name</Label>
+                      <Label htmlFor="name">{t('displayName')}</Label>
                       <Input
                         id="name"
                         name="name"
                         autoComplete="nickname"
                         maxLength={60}
                         required
-                        placeholder="What should we call you?"
+                        placeholder={t('namePlaceholder')}
                       />
                     </div>
                     <EmailField />
                     <PasswordField id="password" newPassword />
                     <Button className="primary" type="submit">
-                      {busy ? 'Creating account…' : 'Create account'}
+                      {busy ? t('creatingAccount') : t('createAccount')}
                     </Button>
                   </fieldset>
                 </form>
                 <p className="bottom-link">
-                  Already have an account? <Link href="/login">Sign in</Link>
+                  {t('alreadyRegistered')} <Link href="/login">{t('signIn')}</Link>
                 </p>
               </>
             )}
@@ -463,10 +458,10 @@ export function AccountApp({ view }: { view: View }) {
             {view === 'forgot-password' && (
               <>
                 <Link className="back" href="/login">
-                  ← Back to sign in
+                  {t('backToSignInArrow')}
                 </Link>
-                <h1>Forgot your password?</h1>
-                <p className="subtitle">Enter your email and we’ll help you reset it.</p>
+                <h1>{t('forgotTitle')}</h1>
+                <p className="subtitle">{t('forgotDescription')}</p>
                 <form
                   onSubmit={submit(async (data) => {
                     await check(
@@ -475,15 +470,13 @@ export function AccountApp({ view }: { view: View }) {
                         redirectTo: '/reset-password',
                       }),
                     );
-                    setNotice(
-                      'If an eligible account exists, you’ll receive an email with the next steps.',
-                    );
+                    setNotice('resetRequested');
                   })}
                 >
                   <fieldset disabled={busy}>
                     <EmailField />
                     <Button className="primary" type="submit">
-                      {busy ? 'Sending…' : 'Send reset link'}
+                      {busy ? t('sending') : t('sendResetLink')}
                     </Button>
                   </fieldset>
                 </form>
@@ -493,14 +486,13 @@ export function AccountApp({ view }: { view: View }) {
             {view === 'reset-password' && (
               <>
                 <Link href="/login" className="back">
-                  ← Back to sign in
+                  {t('backToSignInArrow')}
                 </Link>
-                <h1>A fresh start.</h1>
-                <p className="subtitle">Choose a new password for your account.</p>
+                <h1>{t('resetTitle')}</h1>
+                <p className="subtitle">{t('resetDescription')}</p>
                 <form
                   onSubmit={submit(async (data) => {
-                    if (!params.get('token'))
-                      throw new Error('This reset link is invalid. Request a new link.');
+                    if (!params.get('token')) throw new Error('invalidResetLink');
                     await check(
                       client.resetPassword({
                         newPassword: value(data, 'password'),
@@ -513,26 +505,26 @@ export function AccountApp({ view }: { view: View }) {
                   <fieldset disabled={busy || !params.get('token')}>
                     <PasswordField id="password" newPassword />
                     <Button className="primary" type="submit">
-                      Save new password
+                      {t('saveNewPassword')}
                     </Button>
                   </fieldset>
                 </form>
                 <p className="bottom-link">
-                  <Link href="/forgot-password">Request a new reset link</Link>
+                  <Link href="/forgot-password">{t('requestNewResetLink')}</Link>
                 </p>
               </>
             )}
 
             {view === 'account' &&
               (isPending ? (
-                <p role="status">Loading your account…</p>
+                <p role="status">{t('loadingAccount')}</p>
               ) : !user || sessionError ? (
                 <>
-                  <h1>Let’s get you signed in.</h1>
+                  <h1>{t('signInRequiredTitle')}</h1>
                   {feedback}
-                  <p className="subtitle">Your session has ended or access is unavailable.</p>
+                  <p className="subtitle">{t('sessionEnded')}</p>
                   <Link className="primary" href="/login">
-                    Back to sign in
+                    {t('backToSignIn')}
                   </Link>
                 </>
               ) : (
@@ -544,14 +536,12 @@ export function AccountApp({ view }: { view: View }) {
                 >
                   {settingsOpen && (
                     <Button className="back" onClick={() => navigateSettings(null)}>
-                      ← Back to account
+                      {t('backToAccount')}
                     </Button>
                   )}
-                  <h1>{settingsOpen ? 'Settings' : 'Your account.'}</h1>
+                  <h1>{settingsOpen ? t('settings') : t('accountTitle')}</h1>
                   <p className="subtitle">
-                    {settingsOpen
-                      ? 'Manage your profile, sign-in and data.'
-                      : 'A space for you and your cat.'}
+                    {settingsOpen ? t('settingsDescription') : t('accountDescription')}
                   </p>
                   {!settingsOpen ? (
                     <div className="account-overview">
@@ -562,26 +552,26 @@ export function AccountApp({ view }: { view: View }) {
                         </div>
                         <div>
                           <strong>{user.name}</strong>
-                          <p className="account-email">Your account is ready.</p>
+                          <p className="account-email">{t('accountReady')}</p>
                         </div>
                       </div>
-                      <p className="hint">Open your account menu to manage your settings.</p>
+                      <p className="hint">{t('openSettingsHint')}</p>
                     </div>
                   ) : (
                     <Tabs value={tab!} onValueChange={navigateSettings} activationMode="manual">
                       <TabsList
                         className="account-nav"
-                        aria-label="Account settings"
+                        aria-label={t('accountSettings')}
                         variant="line"
                       >
                         <TabsTrigger value="profile" disabled={busy}>
-                          Profile
+                          {t('profile')}
                         </TabsTrigger>
                         <TabsTrigger value="security" disabled={busy}>
-                          Security
+                          {t('security')}
                         </TabsTrigger>
                         <TabsTrigger value="data" disabled={busy}>
-                          Data & privacy
+                          {t('privacy')}
                         </TabsTrigger>
                       </TabsList>
                       {feedback}
@@ -593,12 +583,12 @@ export function AccountApp({ view }: { view: View }) {
                               client.updateUser({ name: value(data, 'displayName').trim() }),
                             );
                             await refetch();
-                            setNotice('Your profile has been updated.');
+                            setNotice('profileUpdated');
                           })}
                         >
                           <fieldset disabled={busy}>
                             <div className="field">
-                              <Label htmlFor="displayName">Display name</Label>
+                              <Label htmlFor="displayName">{t('displayName')}</Label>
                               <Input
                                 id="displayName"
                                 name="displayName"
@@ -609,21 +599,18 @@ export function AccountApp({ view }: { view: View }) {
                               />
                             </div>
                             <div className="field">
-                              <Label htmlFor="profile-email">Email address</Label>
+                              <Label htmlFor="profile-email">{t('email')}</Label>
                               <Input id="profile-email" value={user.email} readOnly />
-                              <p className="hint">✓ Email verified</p>
+                              <p className="hint">{t('emailVerified')}</p>
                             </div>
                             <Button className="primary" type="submit">
-                              Save changes
+                              {t('saveChanges')}
                             </Button>
                           </fieldset>
                         </form>
                         <details>
-                          <summary>Change email address</summary>
-                          <p className="hint">
-                            Sign in again first. Your new address must be approved for the pilot.
-                            We’ll ask you to confirm both email addresses.
-                          </p>
+                          <summary>{t('changeEmail')}</summary>
+                          <p className="hint">{t('changeEmailHelp')}</p>
                           <form
                             onSubmit={submit(async (data) => {
                               await check(
@@ -632,23 +619,24 @@ export function AccountApp({ view }: { view: View }) {
                                   callbackURL: '/login?verified=1',
                                 }),
                               );
-                              setNotice('Check your current email to approve this change.');
+                              setNotice('emailChangeRequested');
                             })}
                           >
                             <fieldset disabled={busy}>
-                              <EmailField id="newEmail" label="New email address" />
+                              <EmailField id="newEmail" label={t('newEmail')} />
                               <Button className="primary" type="submit">
-                                Request email change
+                                {t('requestEmailChange')}
                               </Button>
                             </fieldset>
                           </form>
                         </details>
                         <AppearanceSettings disabled={busy} onSavingChange={setBusy} />
+                        <LanguageSettings disabled={busy} onSavingChange={setBusy} />
                       </TabsContent>
                       <TabsContent value="security">
-                        <div className="section-title">Sign-in methods</div>
+                        <div className="section-title">{t('signInMethods')}</div>
                         {!securityLoaded ? (
-                          <p role="status">Loading security settings…</p>
+                          <p role="status">{t('loadingSecurity')}</p>
                         ) : (
                           <>
                             <div className="setting-row">
@@ -666,27 +654,27 @@ export function AccountApp({ view }: { view: View }) {
                                         }),
                                       );
                                       await loadSecurity();
-                                      setNotice('Google has been disconnected.');
+                                      setNotice('googleDisconnected');
                                     })
                                   }
                                 >
-                                  Disconnect
+                                  {t('disconnect')}
                                 </Button>
                               ) : (
                                 <Button disabled={busy} onClick={() => void social(true)}>
-                                  Connect →
+                                  {t('connect')}
                                 </Button>
                               )}
                             </div>
                             <div className="setting-row">
                               <span>Facebook</span>
-                              <Button disabled>Connect →</Button>
+                              <Button disabled>{t('connect')}</Button>
                             </div>
                             <details>
                               <summary>
                                 {accounts.some((account) => account.providerId === 'credential')
-                                  ? 'Change password'
-                                  : 'Set a password'}
+                                  ? t('changePassword')
+                                  : t('setPassword')}
                               </summary>
                               {accounts.some((account) => account.providerId === 'credential') ? (
                                 <form
@@ -699,20 +687,21 @@ export function AccountApp({ view }: { view: View }) {
                                       }),
                                     );
                                     await loadSecurity();
-                                    setNotice(
-                                      'Password changed. Other devices have been signed out.',
-                                    );
+                                    setNotice('passwordChanged');
                                   })}
                                 >
                                   <fieldset disabled={busy}>
-                                    <PasswordField id="currentPassword" label="Current password" />
+                                    <PasswordField
+                                      id="currentPassword"
+                                      label={t('currentPassword')}
+                                    />
                                     <PasswordField
                                       id="newPassword"
-                                      label="New password"
+                                      label={t('newPassword')}
                                       newPassword
                                     />
                                     <Button className="primary" type="submit">
-                                      Change password
+                                      {t('changePassword')}
                                     </Button>
                                   </fieldset>
                                 </form>
@@ -728,27 +717,32 @@ export function AccountApp({ view }: { view: View }) {
                                           redirectTo: '/reset-password',
                                         }),
                                       );
-                                      setNotice('Check your email to set a password.');
+                                      setNotice('passwordSetupRequested');
                                     })
                                   }
                                 >
-                                  Send password setup link
+                                  {t('sendPasswordSetup')}
                                 </Button>
                               )}
                             </details>
-                            <div className="section-title">Sessions</div>
+                            <div className="section-title">{t('sessions')}</div>
                             {sessions.map((session) => (
                               <div className="setting-row" key={session.id}>
                                 <div>
                                   {session.id === current.session.id
-                                    ? 'This device'
-                                    : 'Another device'}
+                                    ? t('thisDevice')
+                                    : t('anotherDevice')}
                                   <div className="security-sub">
-                                    Signed in {new Date(session.createdAt).toLocaleString('en-GB')}
+                                    {t('signedInAt', {
+                                      date: format.dateTime(new Date(session.createdAt), {
+                                        dateStyle: 'medium',
+                                        timeStyle: 'short',
+                                      }),
+                                    })}
                                   </div>
                                 </div>
                                 {session.id === current.session.id ? (
-                                  <span className="chip">Active</span>
+                                  <span className="chip">{t('active')}</span>
                                 ) : (
                                   <Button
                                     disabled={busy}
@@ -756,11 +750,11 @@ export function AccountApp({ view }: { view: View }) {
                                       void run(async () => {
                                         await check(client.revokeSession({ token: session.token }));
                                         await loadSecurity();
-                                        setNotice('Device signed out.');
+                                        setNotice('deviceSignedOut');
                                       })
                                     }
                                   >
-                                    Sign out
+                                    {t('signOut')}
                                   </Button>
                                 )}
                               </div>
@@ -775,14 +769,14 @@ export function AccountApp({ view }: { view: View }) {
                                 })
                               }
                             >
-                              Sign out everywhere
+                              {t('signOutEverywhere')}
                             </Button>
                           </>
                         )}
                       </TabsContent>
                       <TabsContent value="data">
                         <div className="setting-row">
-                          <span>Your data</span>
+                          <span>{t('yourData')}</span>
                           <Button
                             disabled={busy}
                             onClick={() =>
@@ -790,40 +784,36 @@ export function AccountApp({ view }: { view: View }) {
                                 const response = await fetch('/api/account/export', {
                                   cache: 'no-store',
                                 });
-                                if (!response.ok)
-                                  throw new Error('Please sign in again to download your data.');
+                                if (!response.ok) throw new Error('exportRequiresSignIn');
                                 const url = URL.createObjectURL(await response.blob());
                                 const anchor = document.createElement('a');
                                 anchor.href = url;
                                 anchor.download = 'cat-care-account.json';
                                 anchor.click();
                                 URL.revokeObjectURL(url);
-                                setNotice('Your data download is ready.');
+                                setNotice('exportReady');
                               })
                             }
                           >
-                            Download data →
+                            {t('downloadData')}
                           </Button>
                         </div>
                         <details className="danger">
-                          <summary>Delete account</summary>
-                          <p className="hint">
-                            This permanently deletes your account and ends access on all devices.
-                            Sign in again first, then confirm using the email we send you.
-                          </p>
+                          <summary>{t('deleteAccount')}</summary>
+                          <p className="hint">{t('deleteHelp')}</p>
                           <form
                             onSubmit={submit(async () => {
                               await check(client.deleteUser({ callbackURL: '/login?deleted=1' }));
-                              setNotice('Check your email to confirm account deletion.');
+                              setNotice('deletionRequested');
                             })}
                           >
                             <fieldset disabled={busy}>
                               <Label className="checkbox">
-                                <input type="checkbox" required />I want to permanently delete my
-                                account.
+                                <input type="checkbox" required />
+                                {t('deleteConsent')}
                               </Label>
                               <Button className="primary danger-button" type="submit">
-                                Send deletion confirmation
+                                {t('sendDeletionConfirmation')}
                               </Button>
                             </fieldset>
                           </form>

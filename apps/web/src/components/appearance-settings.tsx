@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 
 import { useState } from 'react';
 import { Monitor, Sun, Moon, Check, CircleAlert } from 'lucide-react';
@@ -7,9 +8,9 @@ import type { ThemePreference } from '@/lib/theme';
 import { Button } from './ui/button';
 
 const choices = [
-  { value: 'system', label: 'System', Icon: Monitor },
-  { value: 'light', label: 'Light', Icon: Sun },
-  { value: 'dark', label: 'Dark', Icon: Moon },
+  { value: 'system', Icon: Monitor },
+  { value: 'light', Icon: Sun },
+  { value: 'dark', Icon: Moon },
 ] as const;
 
 export function AppearanceSettings({
@@ -19,22 +20,25 @@ export function AppearanceSettings({
   disabled: boolean;
   onSavingChange: (saving: boolean) => void;
 }) {
+  const t = useTranslations('Appearance');
   const { preference, ready, loadError, save, refresh } = useAppearance();
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<'' | 'saveError' | 'signInAgain'>('');
 
   async function choose(next: ThemePreference) {
     if (next === preference) return;
     setSaving(true);
     onSavingChange(true);
-    setMessage('');
+    setSaved(false);
     setError('');
     try {
       await save(next);
-      setMessage('Appearance saved.');
+      setSaved(true);
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : 'Please try again.');
+      setError(
+        failure instanceof Error && failure.message === 'signInAgain' ? 'signInAgain' : 'saveError',
+      );
     } finally {
       setSaving(false);
       onSavingChange(false);
@@ -44,10 +48,10 @@ export function AppearanceSettings({
   return (
     <section className="appearance" aria-labelledby="appearance-title">
       <h2 id="appearance-title" className="section-title">
-        Appearance
+        {t('title')}
       </h2>
       <p className="hint" id="appearance-help">
-        System follows this device. Light or Dark applies to your account on every device.
+        {t('help')}
       </p>
       <fieldset
         className="theme-choices"
@@ -55,8 +59,8 @@ export function AppearanceSettings({
         aria-describedby="appearance-help"
         onChange={(event) => event.stopPropagation()}
       >
-        <legend className="sr-only">Color theme</legend>
-        {choices.map(({ value, label, Icon }) => (
+        <legend className="sr-only">{t('legend')}</legend>
+        {choices.map(({ value, Icon }) => (
           <label className="theme-choice" key={value}>
             <input
               type="radio"
@@ -67,7 +71,7 @@ export function AppearanceSettings({
             />
             <span>
               <Icon aria-hidden="true" />
-              {label}
+              {t(value)}
             </span>
           </label>
         ))}
@@ -76,22 +80,22 @@ export function AppearanceSettings({
         {error ? (
           <p role="alert" className="appearance-error">
             <CircleAlert aria-hidden="true" />
-            {error}
+            {t(error)}
           </p>
         ) : loadError ? (
           <div>
-            <p role="alert">Could not load your appearance settings.</p>
+            <p role="alert">{t('loadError')}</p>
             <Button type="button" variant="outline" onClick={refresh}>
-              Try again
+              {t('retry')}
             </Button>
           </div>
-        ) : saving || message ? (
+        ) : saving || saved ? (
           <p role="status">
             {!saving && <Check aria-hidden="true" />}
-            {saving ? 'Saving appearance…' : message}
+            {t(saving ? 'saving' : 'saved')}
           </p>
         ) : !ready ? (
-          <p role="status">Loading appearance…</p>
+          <p role="status">{t('loading')}</p>
         ) : null}
       </div>
     </section>
