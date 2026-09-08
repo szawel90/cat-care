@@ -2,11 +2,13 @@
 
 Cat Care is a planned assistant for cat owners, combining cat profiles, structured interviews and source-based guidance reviewed by a human expert.
 
-## Planned technologies
+## Technologies
 
-- TypeScript, Next.js and NestJS
-- PostgreSQL with pgvector
-- Retrieval-augmented generation (RAG) and a self-hosted language model
+- TypeScript, React and Next.js
+- NestJS with Fastify and OpenAPI
+- PostgreSQL, pgvector and Prisma
 - pnpm workspaces
 - Docker and Docker Compose
+- ESLint, Prettier, Jest, Supertest and Playwright
 - GitHub Actions
+- Planned: retrieval-augmented generation (RAG) and a self-hosted language model

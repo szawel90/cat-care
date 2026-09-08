@@ -1,0 +1,123 @@
+:root {
+  color-scheme: light;
+  --ink: #233d35;
+  --paper: #f5f3eb;
+  --muted: #5b6d62;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
+.shell {
+  max-width: 1200px;
+  margin: auto;
+  padding: 40px 64px 28px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: Georgia, serif;
+  font-size: 28px;
+}
+.intro {
+  padding: 106px 0 80px;
+  max-width: 760px;
+}
+.eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+  color: var(--muted);
+}
+h1 {
+  font:
+    400 clamp(48px, 7vw, 86px)/1.05 Georgia,
+    'Times New Roman',
+    serif;
+  letter-spacing: -3px;
+  margin: 0 0 28px;
+}
+h1 em {
+  font-weight: 400;
+  color: #627c60;
+}
+.description {
+  max-width: 460px;
+  line-height: 1.8;
+  font-size: 17px;
+  color: var(--muted);
+}
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #ccd3c5;
+  border-radius: 24px;
+  padding: 10px 16px;
+  margin-top: 18px;
+  font-size: 12px;
+}
+.status span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #627c60;
+}
+.principles {
+  border-top: 1px solid #d6dacd;
+  padding: 24px 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  font-size: 13px;
+}
+.principles span {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #697c67;
+  margin-bottom: 14px;
+}
+footer {
+  margin-top: 38px;
+  color: var(--muted);
+  font-size: 11px;
+}
+@media (max-width: 600px) {
+  .shell {
+    padding: 28px 24px;
+  }
+  .intro {
+    padding: 80px 0 48px;
+  }
+  h1 {
+    letter-spacing: -2px;
+  }
+  .principles {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .principles span {
+    display: inline;
+    margin-right: 12px;
+  }
+}

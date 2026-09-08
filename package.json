@@ -1,0 +1,41 @@
+{
+  "name": "cat-care",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=24.19.0 <25"
+  },
+  "scripts": {
+    "dev": "pnpm db:generate && pnpm --filter \"./packages/**\" build && pnpm --parallel --filter \"./apps/**\" dev",
+    "build": "pnpm db:generate && pnpm -r --if-present build",
+    "typecheck": "pnpm db:generate && pnpm --filter \"./packages/**\" build && pnpm -r --if-present typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm --filter @cat-care/api test",
+    "test:integration": "pnpm --filter @cat-care/api test:integration",
+    "test:e2e": "playwright test",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:validate": "prisma validate",
+    "api:generate": "pnpm db:generate && pnpm --filter @cat-care/shared build && pnpm --filter @cat-care/api build && node apps/api/dist/export-openapi.js && pnpm --filter @cat-care/api-client generate && prettier --write packages/api-client/openapi.json packages/api-client/src/schema.d.ts",
+    "env:setup": "node scripts/setup-env.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.0.0",
+    "dotenv": "^17.0.0",
+    "eslint": "10.10.0",
+    "globals": "^16.0.0",
+    "prettier": "3.9.6",
+    "prisma": "7.10.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.70.0",
+    "@eslint/js": "10.0.1",
+    "@next/eslint-plugin-next": "16.3.4",
+    "eslint-plugin-react-hooks": "7.1.1"
+  }
+}
