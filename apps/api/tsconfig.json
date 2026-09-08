@@ -4,7 +4,11 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "outDir": "dist",
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": false,
+    "isolatedModules": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts"]
 }

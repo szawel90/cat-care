@@ -50,6 +50,63 @@
         "summary": "",
         "tags": ["health"]
       }
+    },
+    "/v1/account/options": {
+      "get": {
+        "operationId": "AccountController_options",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountOptionsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Account"]
+      }
+    },
+    "/v1/account": {
+      "get": {
+        "operationId": "AccountController_profile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Account"]
+      }
+    },
+    "/v1/account/export": {
+      "get": {
+        "operationId": "AccountController_export",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountExportDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Account"]
+      }
     }
   },
   "info": {
@@ -71,6 +128,97 @@
           }
         },
         "required": ["status"]
+      },
+      "AccountOptionsDto": {
+        "type": "object",
+        "properties": {
+          "google": {
+            "type": "boolean"
+          },
+          "facebook": {
+            "type": "boolean"
+          },
+          "emailPassword": {
+            "type": "boolean"
+          }
+        },
+        "required": ["google", "facebook", "emailPassword"]
+      },
+      "AccountProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          }
+        },
+        "required": ["id", "displayName", "email", "emailVerified"]
+      },
+      "ExportedLoginMethodDto": {
+        "type": "object",
+        "properties": {
+          "providerId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["providerId", "createdAt"]
+      },
+      "ExportedProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportedLoginMethodDto"
+            }
+          }
+        },
+        "required": ["id", "displayName", "email", "emailVerified", "createdAt", "accounts"]
+      },
+      "AccountExportDto": {
+        "type": "object",
+        "properties": {
+          "exportedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ExportedProfileDto"
+          }
+        },
+        "required": ["exportedAt", "profile"]
       }
     }
   }

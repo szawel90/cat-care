@@ -11,6 +11,7 @@ describe('Health endpoints', () => {
   const query = jest.fn();
 
   beforeAll(async () => {
+    process.env.BETTER_AUTH_SECRET = 'synthetic-secret-for-health-check-tests-only';
     process.env.DATABASE_URL = 'postgresql://test:example@localhost:5432/test';
     const module = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService)

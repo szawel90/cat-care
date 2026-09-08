@@ -36,6 +36,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/account/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AccountController_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AccountController_profile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AccountController_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -43,6 +91,40 @@ export interface components {
         HealthDto: {
             /** @enum {string} */
             status: "ok" | "not_ready";
+        };
+        AccountOptionsDto: {
+            google: boolean;
+            facebook: boolean;
+            emailPassword: boolean;
+        };
+        AccountProfileDto: {
+            /** Format: uuid */
+            id: string;
+            displayName: string;
+            /** Format: email */
+            email: string;
+            emailVerified: boolean;
+        };
+        ExportedLoginMethodDto: {
+            providerId: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ExportedProfileDto: {
+            /** Format: uuid */
+            id: string;
+            displayName: string;
+            /** Format: email */
+            email: string;
+            emailVerified: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            accounts: components["schemas"]["ExportedLoginMethodDto"][];
+        };
+        AccountExportDto: {
+            /** Format: date-time */
+            exportedAt: string;
+            profile: components["schemas"]["ExportedProfileDto"];
         };
     };
     responses: never;
@@ -95,6 +177,63 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthDto"];
+                };
+            };
+        };
+    };
+    AccountController_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountOptionsDto"];
+                };
+            };
+        };
+    };
+    AccountController_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountProfileDto"];
+                };
+            };
+        };
+    };
+    AccountController_export: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountExportDto"];
                 };
             };
         };
