@@ -20,21 +20,28 @@ enum AccessStatus {
   REVOKED
 }
 
+enum ThemePreference {
+  system
+  light
+  dark
+}
+
 model User {
-  id             String          @id @default(uuid()) @db.Uuid
-  email          String          @unique
-  emailVerified  Boolean         @default(false)
-  displayName    String
-  image          String?
-  role           UserRole        @default(USER)
-  consentVersion String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  deletedAt      DateTime?
-  accounts       AuthAccount[]
-  sessions       AuthSession[]
-  accessApproval AccessApproval?
-  emailActions   EmailAction[]
+  id              String          @id @default(uuid()) @db.Uuid
+  email           String          @unique
+  emailVerified   Boolean         @default(false)
+  displayName     String
+  image           String?
+  role            UserRole        @default(USER)
+  themePreference ThemePreference @default(system)
+  consentVersion  String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+  accounts        AuthAccount[]
+  sessions        AuthSession[]
+  accessApproval  AccessApproval?
+  emailActions    EmailAction[]
 }
 
 model AuthAccount {

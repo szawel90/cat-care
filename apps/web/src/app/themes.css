@@ -1,0 +1,91 @@
+/* Quiet Companion: Cat Care roles using the IBM Carbon neutral Gray and Blue palette. */
+:root {
+  color-scheme: light;
+  --ui-background: #ffffff;
+  --ui-foreground: #161616;
+  --ui-card: #ffffff;
+  --ui-elevated: #ffffff;
+  --ui-primary: #0f62fe;
+  --ui-primary-foreground: #ffffff;
+  --ui-secondary: #f4f4f4;
+  --ui-muted-foreground: #525252;
+  --ui-destructive: #da1e28;
+  --ui-destructive-foreground: #ffffff;
+  --ui-border: #c6c6c6;
+  --ui-input: #8d8d8d;
+  --ui-ring: #0f62fe;
+  --ui-primary-hover: #0043ce;
+  --ui-danger-hover: #a2191f;
+  --ui-disabled-text: #6f6f6f;
+  --ui-disabled-bg: #e0e0e0;
+  --ui-story: #f4f4f4;
+  --ui-story-accent: #0043ce;
+  --ui-brand-accent: #0f62fe;
+  --ui-success-bg: #edf5ff;
+  --ui-error-bg: #fff1f1;
+  --ui-error-text: #da1e28;
+  --ui-avatar: #edf5ff;
+  --ui-brand-filter: none;
+  --ui-radius: 0.625rem;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --ui-background: #161616;
+  --ui-foreground: #f4f4f4;
+  --ui-card: #262626;
+  --ui-elevated: #393939;
+  --ui-primary: #78a9ff;
+  --ui-primary-foreground: #161616;
+  --ui-secondary: #393939;
+  --ui-muted-foreground: #c6c6c6;
+  --ui-destructive: #ff8389;
+  --ui-destructive-foreground: #161616;
+  --ui-border: #525252;
+  --ui-input: #8d8d8d;
+  --ui-ring: #ffffff;
+  --ui-primary-hover: #a6c8ff;
+  --ui-danger-hover: #ffb3b8;
+  --ui-disabled-text: #a8a8a8;
+  --ui-disabled-bg: #393939;
+  --ui-story: #262626;
+  --ui-story-accent: #78a9ff;
+  --ui-brand-accent: #78a9ff;
+  --ui-success-bg: #262626;
+  --ui-error-bg: #262626;
+  --ui-error-text: #ff8389;
+  --ui-avatar: #262626;
+  --ui-brand-filter: brightness(0) saturate(100%) invert(96%);
+}
+
+/* System resolves before JavaScript and responds to live device changes. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) {
+    color-scheme: dark;
+    --ui-background: #161616;
+    --ui-foreground: #f4f4f4;
+    --ui-card: #262626;
+    --ui-elevated: #393939;
+    --ui-primary: #78a9ff;
+    --ui-primary-foreground: #161616;
+    --ui-secondary: #393939;
+    --ui-muted-foreground: #c6c6c6;
+    --ui-destructive: #ff8389;
+    --ui-destructive-foreground: #161616;
+    --ui-border: #525252;
+    --ui-input: #8d8d8d;
+    --ui-ring: #ffffff;
+    --ui-primary-hover: #a6c8ff;
+    --ui-danger-hover: #ffb3b8;
+    --ui-disabled-text: #a8a8a8;
+    --ui-disabled-bg: #393939;
+    --ui-story: #262626;
+    --ui-story-accent: #78a9ff;
+    --ui-brand-accent: #78a9ff;
+    --ui-success-bg: #262626;
+    --ui-error-bg: #262626;
+    --ui-error-text: #ff8389;
+    --ui-avatar: #262626;
+    --ui-brand-filter: brightness(0) saturate(100%) invert(96%);
+  }
+}

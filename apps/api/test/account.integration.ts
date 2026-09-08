@@ -32,7 +32,11 @@ describe('Account lifecycle and access isolation', () => {
     process.env.GOOGLE_CLIENT_SECRET = 'synthetic-google-secret';
     admin = new PrismaService();
     await admin.$executeRawUnsafe(`CREATE SCHEMA "${schema}"`);
-    for (const name of ['202609080002_account_foundation', '202609080003_email_actions']) {
+    for (const name of [
+      '202609080002_account_foundation',
+      '202609080003_email_actions',
+      '202609080004_account_theme',
+    ]) {
       const sql = await readFile(
         resolve(__dirname, '../../../prisma/migrations', name, 'migration.sql'),
         'utf8',
@@ -40,7 +44,7 @@ describe('Account lifecycle and access isolation', () => {
       for (const statement of sql.split(';').filter((part) => part.trim())) {
         await admin.$executeRawUnsafe(
           statement.replace(
-            /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus)"/g,
+            /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus|ThemePreference)"/g,
             `"${schema}"."$1"`,
           ),
         );
@@ -79,7 +83,11 @@ describe('Account lifecycle and access isolation', () => {
   function browser() {
     const cookies = new Map<string, string>();
     const remoteAddress = `127.0.0.${++ip}`;
-    return async (path: string, body?: Record<string, unknown>) => {
+    return async (
+      path: string,
+      body?: Record<string, unknown>,
+      extraHeaders: Record<string, string> = {},
+    ) => {
       const response = await app
         .getHttpAdapter()
         .getInstance()
@@ -91,6 +99,7 @@ describe('Account lifecycle and access isolation', () => {
             origin,
             cookie: [...cookies].map(([k, v]) => `${k}=${v}`).join('; '),
             ...(body ? { 'content-type': 'application/json' } : {}),
+            ...extraHeaders,
           },
           ...(body ? { payload: body } : {}),
         });
@@ -197,6 +206,59 @@ describe('Account lifecycle and access isolation', () => {
     expect(
       (await send('/api/auth/sign-in/email', { email: user.email, password })).statusCode,
     ).toBe(403);
+  });
+
+  it('persists appearance across sessions, isolates owners, validates changes and blocks revoked access', async () => {
+    const address = 'appearance@example.test';
+    const first = await register(address);
+    await first(link(address, 'Verify'));
+    await signIn(address, first);
+    const otherDevice = await signIn(address);
+    const otherOwner = await register('other-appearance@example.test');
+    await otherOwner(link('other-appearance@example.test', 'Verify'));
+    await signIn('other-appearance@example.test', otherOwner);
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: address } });
+    expect(user.themePreference).toBe('system');
+    const initial = await first('/v1/account/preferences');
+    expect(initial.json()).toEqual({ themePreference: 'system' });
+    expect(initial.headers['cache-control']).toBe('no-store');
+    for (const themePreference of ['dark', 'light', 'system']) {
+      const saved = await first('/v1/account/preferences', { themePreference });
+      expect(saved.statusCode).toBe(200);
+      expect(saved.headers['cache-control']).toBe('no-store');
+      expect((await otherDevice('/v1/account/preferences')).json()).toEqual({ themePreference });
+      expect((await otherOwner('/v1/account/preferences')).json().themePreference).toBe('system');
+      expect((await first('/v1/account/export')).json().profile.themePreference).toBe(
+        themePreference,
+      );
+    }
+    for (const payload of [
+      {},
+      { themePreference: null },
+      { themePreference: 'blue' },
+      { themePreference: 'dark', userId: user.id },
+    ])
+      expect((await first('/v1/account/preferences', payload)).statusCode).toBe(400);
+    for (const foreignOrigin of ['https://untrusted.example', 'null', ''])
+      expect(
+        (
+          await first(
+            '/v1/account/preferences',
+            { themePreference: 'dark' },
+            { origin: foreignOrigin },
+          )
+        ).statusCode,
+      ).toBe(403);
+    expect((await browser()('/v1/account/preferences')).statusCode).toBe(401);
+    expect(
+      (await browser()('/v1/account/preferences', { themePreference: 'dark' })).statusCode,
+    ).toBe(401);
+    expect((await first('/v1/account/preferences')).json().themePreference).toBe('system');
+    await prisma.accessApproval.update({ where: { userId: user.id }, data: { status: 'REVOKED' } });
+    expect((await first('/v1/account/preferences')).statusCode).toBe(403);
+    expect((await first('/v1/account/preferences', { themePreference: 'dark' })).statusCode).toBe(
+      403,
+    );
   });
 
   it('resets passwords once, invalidates existing sessions, and rejects cross-user session revocation', async () => {
