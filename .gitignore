@@ -1,0 +1,55 @@
+# Dependencies and generated files
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+.turbo/
+*.tsbuildinfo
+
+# Environment secrets; only a reviewed example is publishable
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local data, source materials, models and backups
+/data/
+/private/
+/sources/
+/knowledge/
+/models/
+/weights/
+/uploads/
+/backups/
+/__BIBLIA/
+/_LOG/
+*.safetensors
+*.gguf
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.sql
+*.dump
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+
+# Machine-specific settings, caches and logs
+AGENTS.md
+AGENTS.override.md
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.cache/
+.codex/
+*.log
+tmp/
+temp/
