@@ -68,6 +68,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/account/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AccountController_preferences"];
+        put?: never;
+        post: operations["AccountController_updatePreferences"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/account/export": {
         parameters: {
             query?: never;
@@ -105,6 +121,13 @@ export interface components {
             email: string;
             emailVerified: boolean;
         };
+        AccountPreferencesDto: {
+            /**
+             * @default system
+             * @enum {string}
+             */
+            themePreference: "system" | "light" | "dark";
+        };
         ExportedLoginMethodDto: {
             providerId: string;
             /** Format: date-time */
@@ -117,6 +140,8 @@ export interface components {
             /** Format: email */
             email: string;
             emailVerified: boolean;
+            /** @enum {string} */
+            themePreference: "system" | "light" | "dark";
             /** Format: date-time */
             createdAt: string;
             accounts: components["schemas"]["ExportedLoginMethodDto"][];
@@ -215,6 +240,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountProfileDto"];
+                };
+            };
+        };
+    };
+    AccountController_preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountPreferencesDto"];
+                };
+            };
+        };
+    };
+    AccountController_updatePreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountPreferencesDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountPreferencesDto"];
                 };
             };
         };

@@ -1,3 +1,5 @@
+import { AccountPreferencesDto } from './account-preferences.dto';
+import { Body, Post, HttpCode } from '@nestjs/common';
 import { AccountExportDto } from './account-export.dto';
 import { Controller, Get, Headers, Header, ForbiddenException } from '@nestjs/common';
 import { ApiOkResponse, ApiProperty, ApiTags } from '@nestjs/swagger';
@@ -46,6 +48,35 @@ export class AccountController {
     };
   }
 
+  @Get('preferences')
+  @Header('Cache-Control', 'no-store')
+  @ApiOkResponse({ type: AccountPreferencesDto })
+  async preferences(@Headers() headers: IncomingHttpHeaders): Promise<AccountPreferencesDto> {
+    const current = await this.auth.currentUser(headers);
+    return this.prisma.user.findUniqueOrThrow({
+      where: { id: current.user.id },
+      select: { themePreference: true },
+    });
+  }
+
+  @Post('preferences')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  @ApiOkResponse({ type: AccountPreferencesDto })
+  async updatePreferences(
+    @Headers() headers: IncomingHttpHeaders,
+    @Body() preferences: AccountPreferencesDto,
+  ): Promise<AccountPreferencesDto> {
+    const current = await this.auth.currentUser(headers);
+    if (headers.origin !== this.auth.settings.baseUrl)
+      throw new ForbiddenException('The request origin is not allowed.');
+    return this.prisma.user.update({
+      where: { id: current.user.id },
+      data: { themePreference: preferences.themePreference },
+      select: { themePreference: true },
+    });
+  }
+
   @Get('export')
   @Header('Cache-Control', 'no-store')
   @ApiOkResponse({ type: AccountExportDto })
@@ -60,6 +91,7 @@ export class AccountController {
         displayName: true,
         email: true,
         emailVerified: true,
+        themePreference: true,
         createdAt: true,
         accounts: { select: { providerId: true, createdAt: true } },
       },

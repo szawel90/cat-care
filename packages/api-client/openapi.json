@@ -89,6 +89,52 @@
         "tags": ["Account"]
       }
     },
+    "/v1/account/preferences": {
+      "get": {
+        "operationId": "AccountController_preferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountPreferencesDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Account"]
+      },
+      "post": {
+        "operationId": "AccountController_updatePreferences",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountPreferencesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountPreferencesDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Account"]
+      }
+    },
     "/v1/account/export": {
       "get": {
         "operationId": "AccountController_export",
@@ -164,6 +210,17 @@
         },
         "required": ["id", "displayName", "email", "emailVerified"]
       },
+      "AccountPreferencesDto": {
+        "type": "object",
+        "properties": {
+          "themePreference": {
+            "type": "string",
+            "enum": ["system", "light", "dark"],
+            "default": "system"
+          }
+        },
+        "required": ["themePreference"]
+      },
       "ExportedLoginMethodDto": {
         "type": "object",
         "properties": {
@@ -194,6 +251,10 @@
           "emailVerified": {
             "type": "boolean"
           },
+          "themePreference": {
+            "type": "string",
+            "enum": ["system", "light", "dark"]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -205,7 +266,15 @@
             }
           }
         },
-        "required": ["id", "displayName", "email", "emailVerified", "createdAt", "accounts"]
+        "required": [
+          "id",
+          "displayName",
+          "email",
+          "emailVerified",
+          "themePreference",
+          "createdAt",
+          "accounts"
+        ]
       },
       "AccountExportDto": {
         "type": "object",
