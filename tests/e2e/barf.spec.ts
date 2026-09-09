@@ -210,10 +210,18 @@ test('creates, versions, copies and archives an owner recipe in both locales', a
   await page.getByRole('button', { name: 'Nowa receptura', exact: true }).click();
   await page.getByLabel('Nazwa receptury', { exact: true }).fill('Synthetic food base');
   await page.getByLabel('Sposób układania receptury').selectOption('supplements');
-  await page.locator('#barf-search').fill('Turkey breast');
-  await page.locator('#barf-ingredient').selectOption('meat-041');
-  await page.locator('#barf-quantity').fill('1000');
-  await page.getByRole('button', { name: 'Dodaj', exact: true }).click();
+  for (const [ingredientId, quantity] of [
+    ['meat-094', '1000'],
+    ['meat-041', '1500'],
+    ['meat-153', '500'],
+  ]) {
+    await page.locator('#barf-search').fill('');
+    await page.locator('#barf-ingredient').selectOption(ingredientId!);
+    await page.locator('#barf-quantity').fill(quantity!);
+    await page.getByRole('button', { name: 'Dodaj', exact: true }).click();
+  }
+  for (const lock of await page.locator('.barf-stock-locks input').all())
+    await expect(lock).not.toBeChecked();
   await page.getByRole('button', { name: 'Znajdź propozycję', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Zastosuj propozycję roboczą' })).toBeVisible({
     timeout: 20000,
@@ -237,7 +245,14 @@ test('creates, versions, copies and archives an owner recipe in both locales', a
     foodRecipe.revisions[0].snapshot.input.items.find(
       (i: { ingredientId: string }) => i.ingredientId === 'meat-041',
     ).quantity,
-  ).toBe(1000);
+  ).toBe(1500);
+  expect(foodRecipe.revisions[0].snapshot.planning.unused).toEqual(
+    expect.arrayContaining([
+      { ingredientId: 'meat-094', quantity: 1000 },
+      { ingredientId: 'meat-153', quantity: 500 },
+    ]),
+  );
+  await expect(page.getByText('Największe pozostałe odchylenia', { exact: true })).toBeVisible();
   await page.setViewportSize({ width: 320, height: 740 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,

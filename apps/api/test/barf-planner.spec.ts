@@ -9,6 +9,7 @@ import {
   snapshotBarf,
   validateBarfInput,
   canPlanBarfIngredient,
+  barfFoodMass,
   type BarfCatalog,
   type BarfIngredient,
   type BarfInput,
@@ -252,9 +253,11 @@ describe('BARF inventory planner', () => {
       { ingredientId: 'meat', quantity: 1000 },
       { ingredientId: 'taurine', quantity: 5 },
     ]);
-    expect(() =>
-      planBarf(bad, { ...context(bad), mode: 'supplements' }, catalog(meat, ...supplements)),
-    ).toThrow('BARF_BASE_FOODS_ONLY');
+    const stocked = { ...context(bad), mode: 'supplements' as const };
+    stocked.inventory[1]!.useAll = false;
+    const ownedResult = planBarf(bad, stocked, catalog(meat, ...supplements));
+    expect(ownedResult.purchases.some((i) => i.ingredientId === 'taurine')).toBe(false);
+    expect(ownedResult.unused.some((i) => i.ingredientId === 'taurine')).toBe(true);
   });
 
   it('reaches more than three additions even when many brands compete for the search budget', () => {
@@ -339,10 +342,10 @@ describe('whole-balance regression', () => {
       { ...context(meal), mode: 'supplements' },
       catalog(meat, combined),
     );
-    // Independent least-squares optimum: x = (1/2.4 + 1/1.2) / (1/2.4**2 + 1/1.2**2) = 1.44 grams.
-    expect(result.purchases).toEqual([{ ingredientId: 'combined', quantity: 1.44 }]);
-    expect(result.checks.find((c) => c.id === 'taurine')!.gap).toBeCloseTo(0.4, 2);
-    expect(result.checks.find((c) => c.id === 'iodine')!.gap).toBeCloseTo(0.2, 2);
+    // Independent minimax optimum: 1 - x/2.4 = x/1.2 - 1, hence x = 1.6 grams.
+    expect(result.purchases).toEqual([{ ingredientId: 'combined', quantity: 1.6 }]);
+    expect(result.checks.find((c) => c.id === 'taurine')!.gap).toBeCloseTo(1 / 3, 2);
+    expect(result.checks.find((c) => c.id === 'iodine')!.gap).toBeCloseTo(1 / 3, 2);
     expect(result.targetsMet).toBe(false);
   });
 
@@ -393,4 +396,68 @@ describe('catalog-wide balance regression', () => {
       expect(result.input!.items.find((i) => i.ingredientId === id)!.quantity).toBe(1000);
     },
   );
+});
+
+describe('stock-first food planning', () => {
+  it('reduces the three-meat case without consuming everything or overwhelming the stock with purchases', () => {
+    const meal = input([
+      { ingredientId: 'meat-094', quantity: 1000 },
+      { ingredientId: 'meat-041', quantity: 1500 },
+      { ingredientId: 'meat-153', quantity: 500 },
+    ]);
+    const stock = { ...context(meal, false, 3000), mode: 'supplements' as const };
+    const before = structuredClone({ meal, stock });
+    const result = planBarf(meal, stock);
+    expect(result.status).toBe('proposal');
+    expect(result.targetsMet).toBe(false);
+    expect(Math.max(...result.checks.map((c) => c.gap))).toBeLessThan(1.04);
+    expect(result.unused).toContainEqual({ ingredientId: 'meat-094', quantity: 1000 });
+    expect(result.unused).toContainEqual({ ingredientId: 'meat-153', quantity: 500 });
+    expect(result.input!.items).toContainEqual({ ingredientId: 'meat-041', quantity: 1500 });
+    const foodMass = (items: BarfInput['items']) =>
+      items.reduce(
+        (sum, item) =>
+          sum +
+          item.quantity *
+            barfFoodMass(barfCatalog.ingredients.find((i) => i.id === item.ingredientId)!),
+        0,
+      );
+    expect(foodMass(result.purchases)).toBeLessThanOrEqual(750.01);
+    expect(
+      result.purchases.some(
+        (i) => barfCatalog.ingredients.find((p) => p.id === i.ingredientId)!.category === 'meat',
+      ),
+    ).toBe(true);
+    expect(calculateBarf(result.input!).knownMixtureGrams).toBeLessThan(5000);
+    expect(() => validateBarfInput(result.input!)).not.toThrow();
+    expect({ meal, stock }).toEqual(before);
+    expect(planBarf(meal, stock)).toEqual(result);
+  });
+
+  it('rejects a forged food purchase allowance, including water counted as stock', () => {
+    const meal = input([
+      { ingredientId: 'meat-041', quantity: 1000 },
+      { ingredientId: 'water', quantity: 5000 },
+    ]);
+    const stock = { ...context(meal, false), mode: 'supplements' as const };
+    const forged = {
+      ...meal,
+      items: [...meal.items, { ingredientId: 'meat-094', quantity: 501 }],
+      planning: { ...stock, meatGrams: 1501 },
+    };
+    expect(() => validateBarfInput(forged)).toThrow('BARF_FOOD_PURCHASE_LIMIT');
+    forged.items[2]!.quantity = 500;
+    forged.planning.meatGrams = 1500;
+    expect(() => validateBarfInput(forged)).not.toThrow();
+  });
+
+  it('preserves saved v2 provenance but requires the current version for a new search', () => {
+    const meal = input([{ ingredientId: 'meat-041', quantity: 1000 }]);
+    const old = { ...context(meal), mode: 'supplements' as const, version: 'barf-balance-v2' };
+    expect(() => validateBarfInput({ ...meal, planning: old })).not.toThrow();
+    expect(snapshotBarf({ ...meal, planning: old }).input.planning).toEqual(old);
+    expect(() => planBarf(meal, old)).toThrow('BARF_PLANNER_VERSION_MISMATCH');
+    old.inventory[0]!.useAll = false;
+    expect(() => validateBarfInput({ ...meal, planning: old })).toThrow('BARF_BASE_FOODS_ONLY');
+  });
 });

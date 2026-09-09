@@ -11,6 +11,7 @@ import {
   type BarfInput,
 } from '@cat-care/shared';
 import reference from './fixtures/barf-excel-reference.json';
+import stockReference from './fixtures/barf-stock-excel.json';
 
 function ingredient(
   id: string,
@@ -237,4 +238,20 @@ describe('BARF corrected 1.9c arithmetic', () => {
     expect(snapshot.ingredients).toHaveLength(1);
     expect(snapshot.result.validation).toBe('legacy-unverified');
   });
+});
+
+describe('three-meat native Excel comparison', () => {
+  it.each(stockReference.cases)(
+    'matches the original Excel sums, ratios and references: $name',
+    (fixture) => {
+      const result = calculateBarf({ ...fixture.input, planning: undefined } as BarfInput);
+      for (const row of fixture.nutrients) {
+        const nutrient = result.nutrients[row.id as keyof typeof result.nutrients];
+        expect(nutrient.knownTotal).toBeCloseTo(row.excel, 7);
+        if (row.reference !== null) expect(nutrient.reference).toBeCloseTo(row.reference, 7);
+      }
+      for (const row of fixture.metrics)
+        expect(result[row.id as keyof typeof result]).toBeCloseTo(row.excel, 7);
+    },
+  );
 });

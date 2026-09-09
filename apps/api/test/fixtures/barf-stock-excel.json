@@ -1,0 +1,556 @@
+{
+  "oracle": "Microsoft Excel, original 1.9c formulas; macros disabled; original source unchanged. Synthetic computation cases, not feeding recommendations.",
+  "sourceSha256": "fb60d133c5e4069c7ce31842a21e189653860a687a81665a7e1f3521ad2fffc1",
+  "cases": [
+    {
+      "name": "Before stock planning",
+      "input": {
+        "title": "Three-meat inventory comparison",
+        "catName": "",
+        "catWeightKg": 4,
+        "catalogVersion": "barf-1.9c-data-v1",
+        "engineVersion": "barf-1.9c-corrected-v3",
+        "items": [
+          {
+            "ingredientId": "meat-094",
+            "quantity": 1000
+          },
+          {
+            "ingredientId": "meat-041",
+            "quantity": 1500
+          },
+          {
+            "ingredientId": "meat-153",
+            "quantity": 500
+          }
+        ],
+        "planning": {
+          "version": "barf-balance-v2",
+          "mode": "supplements",
+          "meatGrams": 3000,
+          "inventory": [
+            {
+              "ingredientId": "meat-094",
+              "quantity": 1000,
+              "useAll": true
+            },
+            {
+              "ingredientId": "meat-041",
+              "quantity": 1500,
+              "useAll": true
+            },
+            {
+              "ingredientId": "meat-153",
+              "quantity": 500,
+              "useAll": true
+            }
+          ]
+        }
+      },
+      "nutrients": [
+        {
+          "id": "energy",
+          "excel": 4972.828409090909,
+          "reference": null
+        },
+        {
+          "id": "protein",
+          "excel": 602.7454545454545,
+          "reference": null
+        },
+        {
+          "id": "fat",
+          "excel": 284.5477272727273,
+          "reference": null
+        },
+        {
+          "id": "water",
+          "excel": 2084.25,
+          "reference": null
+        },
+        {
+          "id": "carbohydrate",
+          "excel": 1.75,
+          "reference": null
+        },
+        {
+          "id": "fiber",
+          "excel": 0.0,
+          "reference": null
+        },
+        {
+          "id": "ash",
+          "excel": 0.0,
+          "reference": null
+        },
+        {
+          "id": "calcium",
+          "excel": 371.03636363636366,
+          "reference": 9600.0
+        },
+        {
+          "id": "phosphorus",
+          "excel": 5633.863636363636,
+          "reference": 8400.0
+        },
+        {
+          "id": "magnesium",
+          "excel": 663.2727272727273,
+          "reference": 1440.0
+        },
+        {
+          "id": "sodium",
+          "excel": 1969.818181818182,
+          "reference": 7200.0
+        },
+        {
+          "id": "potassium",
+          "excel": 8812.045454545454,
+          "reference": 9600.0
+        },
+        {
+          "id": "chloride",
+          "excel": 905.0,
+          "reference": 14400.0
+        },
+        {
+          "id": "iron",
+          "excel": 43.362272727272725,
+          "reference": 180.0
+        },
+        {
+          "id": "zinc",
+          "excel": 76.72045454545454,
+          "reference": 120.0
+        },
+        {
+          "id": "copper",
+          "excel": 3.3032,
+          "reference": 12.0
+        },
+        {
+          "id": "manganese",
+          "excel": 1.0915,
+          "reference": 12.0
+        },
+        {
+          "id": "iodine",
+          "excel": 115.21428571428572,
+          "reference": 1800.0
+        },
+        {
+          "id": "selenium",
+          "excel": 177.40714285714284,
+          "reference": 240.0
+        },
+        {
+          "id": "taurine",
+          "excel": 0.0,
+          "reference": 7200.0
+        },
+        {
+          "id": "vitaminA",
+          "excel": 410.664,
+          "reference": 60000.0
+        },
+        {
+          "id": "vitaminD",
+          "excel": 427.0,
+          "reference": 900.0
+        },
+        {
+          "id": "vitaminE",
+          "excel": 28.923954545454546,
+          "reference": 360.0
+        },
+        {
+          "id": "vitaminK",
+          "excel": 470.25,
+          "reference": 480.0
+        },
+        {
+          "id": "vitaminB1",
+          "excel": 8.9175,
+          "reference": 12.0
+        },
+        {
+          "id": "vitaminB2",
+          "excel": 9.434999999999999,
+          "reference": 6.0
+        },
+        {
+          "id": "vitaminB3",
+          "excel": 193.625,
+          "reference": 96.0
+        },
+        {
+          "id": "vitaminB5",
+          "excel": 23.43875,
+          "reference": 24.0
+        },
+        {
+          "id": "vitaminB6",
+          "excel": 13.612727272727271,
+          "reference": 9.6
+        },
+        {
+          "id": "vitaminB7",
+          "excel": 32.5,
+          "reference": 360.0
+        },
+        {
+          "id": "vitaminB9",
+          "excel": 429.27272727272725,
+          "reference": 2400.0
+        },
+        {
+          "id": "vitaminB12",
+          "excel": 59.0505,
+          "reference": 48.0
+        },
+        {
+          "id": "vitaminC",
+          "excel": 20.454545454545453,
+          "reference": 0.0
+        },
+        {
+          "id": "linoleicAcid",
+          "excel": 21.715357142857144,
+          "reference": 30.0
+        },
+        {
+          "id": "arachidonicAcid",
+          "excel": 3822.5,
+          "reference": 360.0
+        }
+      ],
+      "metrics": [
+        {
+          "id": "knownMixtureGrams",
+          "excel": 3000.0
+        },
+        {
+          "id": "moisturePercent",
+          "excel": 69.475
+        },
+        {
+          "id": "proteinDryMatterPercent",
+          "excel": 65.81986945623309
+        },
+        {
+          "id": "fatDryMatterPercent",
+          "excel": 31.07264289082471
+        },
+        {
+          "id": "calciumPhosphorus",
+          "excel": 0.06585824357577959
+        },
+        {
+          "id": "potassiumSodium",
+          "excel": 4.473532398006276
+        }
+      ]
+    },
+    {
+      "name": "After stock planning",
+      "input": {
+        "title": "Three-meat inventory comparison",
+        "catName": "",
+        "catWeightKg": 4,
+        "catalogVersion": "barf-1.9c-data-v1",
+        "engineVersion": "barf-1.9c-corrected-v3",
+        "items": [
+          {
+            "ingredientId": "meat-041",
+            "quantity": 1500
+          },
+          {
+            "ingredientId": "fat-009",
+            "quantity": 116.462
+          },
+          {
+            "ingredientId": "meat-129",
+            "quantity": 24.199
+          },
+          {
+            "ingredientId": "meat-162",
+            "quantity": 609.317
+          },
+          {
+            "ingredientId": "premix-010",
+            "quantity": 9.842
+          },
+          {
+            "ingredientId": "supplement-009",
+            "quantity": 0.66
+          },
+          {
+            "ingredientId": "supplement-014",
+            "quantity": 11.162
+          },
+          {
+            "ingredientId": "supplement-016",
+            "quantity": 4.538
+          },
+          {
+            "ingredientId": "supplement-023",
+            "quantity": 9.752
+          },
+          {
+            "ingredientId": "supplement-028",
+            "quantity": 8.406
+          },
+          {
+            "ingredientId": "supplement-042",
+            "quantity": 13.84
+          },
+          {
+            "ingredientId": "supplement-044",
+            "quantity": 6.183
+          },
+          {
+            "ingredientId": "supplement-045",
+            "quantity": 3.88
+          },
+          {
+            "ingredientId": "supplement-049",
+            "quantity": 27.842
+          },
+          {
+            "ingredientId": "supplement-056",
+            "quantity": 27.872
+          },
+          {
+            "ingredientId": "water",
+            "quantity": 702.278
+          }
+        ],
+        "planning": {
+          "version": "barf-balance-v3",
+          "mode": "supplements",
+          "meatGrams": 2133.516,
+          "inventory": [
+            {
+              "ingredientId": "meat-094",
+              "quantity": 1000,
+              "useAll": false
+            },
+            {
+              "ingredientId": "meat-041",
+              "quantity": 1500,
+              "useAll": false
+            },
+            {
+              "ingredientId": "meat-153",
+              "quantity": 500,
+              "useAll": false
+            }
+          ]
+        }
+      },
+      "nutrients": [
+        {
+          "id": "energy",
+          "excel": 3883.5039990909095,
+          "reference": null
+        },
+        {
+          "id": "protein",
+          "excel": 517.2512065454546,
+          "reference": null
+        },
+        {
+          "id": "fat",
+          "excel": 201.63993747272724,
+          "reference": null
+        },
+        {
+          "id": "water",
+          "excel": 2279.0483868,
+          "reference": null
+        },
+        {
+          "id": "carbohydrate",
+          "excel": 5.3484349,
+          "reference": null
+        },
+        {
+          "id": "fiber",
+          "excel": 0.16361799999999999,
+          "reference": null
+        },
+        {
+          "id": "ash",
+          "excel": 8.3322372,
+          "reference": null
+        },
+        {
+          "id": "calcium",
+          "excel": 7319.875633636365,
+          "reference": 7199.9296
+        },
+        {
+          "id": "phosphorus",
+          "excel": 6050.1234863636355,
+          "reference": 6299.9384
+        },
+        {
+          "id": "magnesium",
+          "excel": 863.4251572727273,
+          "reference": 1079.98944
+        },
+        {
+          "id": "sodium",
+          "excel": 6143.090661818183,
+          "reference": 5399.9472000000005
+        },
+        {
+          "id": "potassium",
+          "excel": 6589.479714545454,
+          "reference": 7199.9296
+        },
+        {
+          "id": "chloride",
+          "excel": 7207.77279,
+          "reference": 10799.894400000001
+        },
+        {
+          "id": "iron",
+          "excel": 141.74933452727274,
+          "reference": 134.99868
+        },
+        {
+          "id": "zinc",
+          "excel": 34.11057864545455,
+          "reference": 89.99912
+        },
+        {
+          "id": "copper",
+          "excel": 4.546776700000001,
+          "reference": 8.999912
+        },
+        {
+          "id": "manganese",
+          "excel": 3.27440571,
+          "reference": 8.999912
+        },
+        {
+          "id": "iodine",
+          "excel": 1372.7470657142858,
+          "reference": 1349.9868000000001
+        },
+        {
+          "id": "selenium",
+          "excel": 200.99914285714286,
+          "reference": 179.99824
+        },
+        {
+          "id": "taurine",
+          "excel": 5490.434,
+          "reference": 5399.9472000000005
+        },
+        {
+          "id": "vitaminA",
+          "excel": 32417.631822800002,
+          "reference": 44999.560000000005
+        },
+        {
+          "id": "vitaminD",
+          "excel": 753.738,
+          "reference": 674.9934000000001
+        },
+        {
+          "id": "vitaminE",
+          "excel": 164.71550203545456,
+          "reference": 269.99736
+        },
+        {
+          "id": "vitaminK",
+          "excel": 486.24904,
+          "reference": 359.99648
+        },
+        {
+          "id": "vitaminB1",
+          "excel": 7.2032238,
+          "reference": 8.999912
+        },
+        {
+          "id": "vitaminB2",
+          "excel": 6.0532113,
+          "reference": 4.499956
+        },
+        {
+          "id": "vitaminB3",
+          "excel": 143.999028,
+          "reference": 71.999296
+        },
+        {
+          "id": "vitaminB5",
+          "excel": 20.099402,
+          "reference": 17.999824
+        },
+        {
+          "id": "vitaminB6",
+          "excel": 12.674195972727272,
+          "reference": 7.199929600000001
+        },
+        {
+          "id": "vitaminB7",
+          "excel": 135.63422000000003,
+          "reference": 269.99736
+        },
+        {
+          "id": "vitaminB9",
+          "excel": 960.1606872727274,
+          "reference": 1799.9824
+        },
+        {
+          "id": "vitaminB12",
+          "excel": 43.775760000000005,
+          "reference": 35.999648
+        },
+        {
+          "id": "vitaminC",
+          "excel": 6.2563104545454555,
+          "reference": 0.0
+        },
+        {
+          "id": "linoleicAcid",
+          "excel": 25.124991192857145,
+          "reference": 22.49978
+        },
+        {
+          "id": "arachidonicAcid",
+          "excel": 550.0,
+          "reference": 269.99736
+        }
+      ],
+      "metrics": [
+        {
+          "id": "knownMixtureGrams",
+          "excel": 3076.233
+        },
+        {
+          "id": "moisturePercent",
+          "excel": 74.08568813870731
+        },
+        {
+          "id": "proteinDryMatterPercent",
+          "excel": 64.8847453877895
+        },
+        {
+          "id": "fatDryMatterPercent",
+          "excel": 25.29400770334979
+        },
+        {
+          "id": "calciumPhosphorus",
+          "excel": 1.209872104285908
+        },
+        {
+          "id": "potassiumSodium",
+          "excel": 1.0726652229799831
+        }
+      ]
+    }
+  ]
+}

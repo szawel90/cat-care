@@ -1548,10 +1548,10 @@
     "planStatus_off-target": "Source target not reached",
     "planStatus_missing-data": "Cannot assess",
     "planMissingFrom": "Missing data: {names}",
-    "planSupplementsMode": "3. Food base + calculated supplements",
-    "planFoodsHint": "Enter your meat, fish, liver, yolks and other food ingredients. Their amounts stay fixed; the calculator will propose supplements without the three-product purchase limit.",
-    "planSupplementsInstructions": "Keep the quantities of your meats, fish and other base foods. The calculator fits all available additions together, minimizing combined relative deviations across all targets. Larger differences receive a stronger penalty. This mode has no three-product limit.",
-    "planRemoveSupplements": "This mode starts with food ingredients only. Remove the entered supplements or switch to the inventory mode; your entries have been kept.",
+    "planSupplementsMode": "3. Recipe from my stock + supplements",
+    "planFoodsHint": "Enter the foods and supplements you have, with their maximum available amounts. You do not have to use everything. Review the proposed quantities, leftovers and purchases before applying.",
+    "planSupplementsInstructions": "We adjust food proportions and consider foods to buy, then complete the mixture with supplements. The largest relative deviation takes priority; the other targets are improved together. This mode has no three-product limit.",
+    "planRemoveSupplements": "This stock includes a product with an unsupported automatic dose or an unknown unit mass. Use manual balance for it; your entries have been kept.",
     "planBalanceAfter": "Your stock is not a recipe yet. Find and apply a proposal to see its full balance, save it or print it. You can also switch to manual balance.",
     "allMissingAssumption": "Calculation assumption: every missing nutrient value counts as 0. Source records remain unchanged; we will complete them later.",
     "allMissingExplanation": "Values marked * use 0 for missing contributions. Expand the row to see which products use this assumption.",
@@ -1561,6 +1561,9 @@
     "missingSuggestionAssumption": "Missing nutrient contributions count as 0 for: {names}.",
     "planBalanceCriteria": "All available source targets are assessed together, including deficits and excesses. Ca:P 1.15, K:Na 1.35, moisture 75% and dry-matter fat 25% are source targets, not verified clinical optima. Missing nutrient values count as 0; a zero denominator cannot define a ratio.",
     "planDeviation": "Deviation from target: {value}%",
-    "planUndefinedRatio": "Ratio unavailable (zero denominator or unknown mass)"
+    "planUndefinedRatio": "Ratio unavailable (zero denominator or unknown mass)",
+    "planFoodPurchaseLimit": "Foods to buy: up to half the mass of food used from your stock. Water and supplements are counted separately.",
+    "planLargestDeviations": "Largest remaining deviations",
+    "planJointSelection": "Selected for the combined mixture; see the final balance below."
   }
 }

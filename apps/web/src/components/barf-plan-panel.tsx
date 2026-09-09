@@ -7,6 +7,7 @@ import {
   barfCatalog,
   barfNutrients,
   canPlanBarfIngredient,
+  canPlanBarfFood,
   isBarfBaseFood,
   type BarfInput,
   type BarfPlan,
@@ -50,6 +51,31 @@ export function BarfPlanSummary({
             })}
           </p>
         )}
+      {!assessment.targetsMet && (
+        <div>
+          <h3>{t('planLargestDeviations')}</h3>
+          <ul>
+            {[...assessment.checks]
+              .sort((a, b) => b.gap - a.gap)
+              .filter((c) => c.status !== 'at-reference')
+              .slice(0, 3)
+              .map((check) => (
+                <li key={check.id}>
+                  {check.id === 'water'
+                    ? t('moisture')
+                    : check.id === 'fat'
+                      ? t('fatDryMatter')
+                      : (barfNutrients.find((n) => n.id === check.id)?.name[locale] ??
+                        t(check.id as 'calciumPhosphorus'))}
+                  :{' '}
+                  {check.actual === null
+                    ? t('planUndefinedRatio')
+                    : t('planDeviation', { value: number.format(check.gap * 100) })}
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
       <h3>{t('planProducts', { count: assessment.purchases.length })}</h3>
       <ul className="barf-plan-products">
         {input.items.map((item) => {
@@ -64,11 +90,7 @@ export function BarfPlanSummary({
                 {t(owned.has(item.ingredientId) ? 'planOwned' : 'planBuy')}
               </span>
               {!owned.has(item.ingredientId) && (
-                <span className="barf-hint">
-                  {t('suggestionReason', {
-                    reason: t(`rule_${ingredient.suggestion}` as 'rule_taurine'),
-                  })}
-                </span>
+                <span className="barf-hint">{t('planJointSelection')}</span>
               )}
             </li>
           );
@@ -171,15 +193,16 @@ export function BarfPlanPanel({
     () => ({
       version: BARF_PLANNER_VERSION,
       mode,
-      meatGrams: batch === null ? meatStock : Number(batch),
+      meatGrams: mode === 'supplements' || batch === null ? meatStock : Number(batch),
       inventory: input.items.map((item) => {
         const ingredient = barfCatalog.ingredients.find((i) => i.id === item.ingredientId)!;
         return {
           ...item,
           useAll:
-            mode === 'supplements' ||
-            (locks[item.ingredientId] ??
-              (ingredient.category === 'meat' || !canPlanBarfIngredient(ingredient))),
+            locks[item.ingredientId] ??
+            (mode === 'supplements'
+              ? !canPlanBarfFood(ingredient) && !canPlanBarfIngredient(ingredient)
+              : ingredient.category === 'meat' || !canPlanBarfIngredient(ingredient)),
         };
       }),
     }),
@@ -196,9 +219,14 @@ export function BarfPlanPanel({
   );
   const baseOnly =
     mode !== 'supplements' ||
-    input.items.every((item) =>
-      isBarfBaseFood(barfCatalog.ingredients.find((i) => i.id === item.ingredientId)!),
-    );
+    input.items.every((item) => {
+      const i = barfCatalog.ingredients.find((i) => i.id === item.ingredientId)!;
+      return (
+        canPlanBarfFood(i) ||
+        canPlanBarfIngredient(i) ||
+        (isBarfBaseFood(i) && i.gramsPerUnit !== null)
+      );
+    });
   const valid =
     baseOnly &&
     input.items.length > 0 &&
@@ -239,30 +267,34 @@ export function BarfPlanPanel({
       {!baseOnly && <p role="alert">{t('planRemoveSupplements')}</p>}
       <fieldset disabled={disabled || running}>
         <legend className="sr-only">{t('planInventory')}</legend>
+        {mode === 'supplements' && <p className="barf-hint">{t('planFoodPurchaseLimit')}</p>}
+        <ul className="barf-stock-locks">
+          {context.inventory.map((item) => {
+            const ingredient = barfCatalog.ingredients.find((i) => i.id === item.ingredientId)!;
+            const fixed =
+              mode === 'supplements'
+                ? !canPlanBarfFood(ingredient) && !canPlanBarfIngredient(ingredient)
+                : ingredient.category !== 'meat' && !canPlanBarfIngredient(ingredient);
+            return (
+              <li key={item.ingredientId}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={item.useAll}
+                    disabled={fixed}
+                    onChange={(event) =>
+                      setLocks({ ...locks, [item.ingredientId]: event.target.checked })
+                    }
+                  />
+                  {t('planUseAll', { name: ingredient.name[locale] })}
+                </label>
+                {fixed && <p className="barf-hint">{t('planManualUnit')}</p>}
+              </li>
+            );
+          })}
+        </ul>
         {mode === 'inventory' && (
           <>
-            <ul className="barf-stock-locks">
-              {context.inventory.map((item) => {
-                const ingredient = barfCatalog.ingredients.find((i) => i.id === item.ingredientId)!;
-                const fixed = ingredient.category !== 'meat' && !canPlanBarfIngredient(ingredient);
-                return (
-                  <li key={item.ingredientId}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={item.useAll}
-                        disabled={fixed}
-                        onChange={(event) =>
-                          setLocks({ ...locks, [item.ingredientId]: event.target.checked })
-                        }
-                      />
-                      {t('planUseAll', { name: ingredient.name[locale] })}
-                    </label>
-                    {fixed && <p className="barf-hint">{t('planManualUnit')}</p>}
-                  </li>
-                );
-              })}
-            </ul>
             <Label htmlFor="barf-plan-batch">{t('planBatch')}</Label>
             <Input
               id="barf-plan-batch"

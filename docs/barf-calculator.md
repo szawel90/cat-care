@@ -65,47 +65,54 @@ The selector at the top of the editor provides:
    be allocated to a smaller meat batch. Owned supplements may be omitted or reduced;
    an owned product is never silently topped up beyond its stock. At most three
    distinct products outside the stock may be added.
-3. **Food base + calculated supplements**: meat, fish, liver, yolks and other food
-   ingredients stay at the entered quantities. Automatic additions do not have
-   the three-product purchase limit. Pre-entered supplements prevent calculation
-   until removed or handled in the inventory workflow; switching never deletes them.
+3. **Recipe from my stock + supplements**: entered foods and supported gram-based
+   supplements are available maxima. Quantities are flexible by default; users can
+   lock a quantity. Unused food is retained in the stock breakdown. New food purchases
+   are capped at **50% of food actually used from stock**. Food classification includes
+   meat, fish, fat, vegetables, liver and yolks; water and supplements do not count
+   toward either side of this allowance. This mode has no three-product limit.
 
-Both planners retain the meat-based 1.9c reference model. Fish alone does not provide
-its required meat denominator. Fractional capsule/drop dosing and renal premixes are
-excluded from automatic choices. Multiple full-dose premixes cannot be combined.
-Automatic gram quantities have 0.001-unit arithmetic precision; this does not establish
-the practical measurement precision of every product.
+Both planners retain the meat-based 1.9c reference model, including added fats.
+Fish alone does not provide the required meat denominator. Automatic choices exclude
+fractional capsules/drops, unknown unit masses and renal premixes. A known-mass yolk
+can be kept at a fixed input quantity. Multiple premixes cannot be combined.
 
-YALPS 0.6.4 (MIT) fits quantities under stock bounds and fixed base amounts.
-Planner v2 has two separate search strategies:
+Planner `barf-balance-v3` uses YALPS 0.6.4 (MIT). Historical v2 provenance remains valid
+under its original fixed-base rules; new searches require v3.
 
-- **Inventory** retains bounded candidate search (at most 1,200 combinations and an
-  adaptive beam up to 12) and simultaneous source dose rules, with no more than three
-  new products. Missing nutrient contributions now count as zero in every equation.
-- **Food base** considers all eligible gram-based additions together. It enumerates
-  the no-premix case and each single premix, with a premix bounded by its source dose.
-  Individual supplement dose rules no longer force exact equations: the objective
-  minimizes the sum of squared normalized residuals across **all 31 available targets**.
-  Deficits and excesses both contribute; an excess never counts as an exact match.
-  Only equally good nutrient results may prefer a smaller maximum residual or fewer
-  ingredients. There is no stop after one corrected deficit or three additions.
+- **Inventory** retains the source dose equations and bounded candidate search
+  (at most 1,200 combinations, adaptive beam up to 12, at most three new products).
+- **Stock recipe** first fits food proportions, then considers targeted supplements
+  with the selected and full food pools. The no-premix case and each single eligible
+  premix are compared. Premix quantity is capped by its source dose.
+- The first objective minimizes the **largest actual relative deviation** across
+  all 31 targets, using bisection over linear feasibility constraints. A nutrient
+  reference depends on the resulting source meat mass, and ratio denominators depend
+  on the mixture. Added water cannot dilute nutrient errors.
+- Composition is normalized to 1 kg of owned meat for numerical conditioning, then
+  scaled to the largest batch fitting the stock. No owned quantity is exceeded; at
+  least one available stock limit is reached. Food purchases remain within 50%.
+- Within the best found maximum deviation, refine other targets together through
+  squared normalized residuals, with iterative tangent bounds (up to 32 refinements,
+  objective gap 1e-6). Secondary ratio residuals use the documented reference scales;
+  displayed deviations always use actual final ratios. Fewer products break ties.
+- Numerical simplification may remove a purchase only if no reported deviation grows
+  by more than 0.01 percentage points and the maximum grows by at most 0.002 points
+  per removal. These are numerical search tolerances, not nutritional safe ranges.
 
-Nutrient residuals are normalized by their reference for the fixed entered meat batch.
-Ratio residuals use fixed batch scales (Ca:P and K:Na denominator reference amounts;
-water 75% of batch mass; fat 25% of the assumed 25% dry batch mass). This puts g, mg,
-micrograms and IU on comparable scales and prevents water dilution of the objective.
-The displayed percentage deviations use the actual final reference/ratio; they are
-distinct from this fixed normalization used during optimization. Added fats still
-affect final references under the unchanged 1.9c model.
+Quantities are rounded to 0.001 units and all totals, ratios, stock bounds and purchase
+allowances are revalidated. This is arithmetic precision, not a claim that every
+product can practically be measured to that precision. Numerical/search limits are
+shown; a partial search does not prove global optimality or infeasibility.
+The original source has conflicting targets, including Ca:P 80/70 versus 1.15 and
+K:Na 1.35 in the salt macro versus 1.50 displayed in the original Analiza sheet.
 
-The convex squared objective is solved through successively refined tangent bounds,
-with a 32-iteration cap and a relative/absolute objective gap of 1e-7. Fixed base foods
-are eliminated into RHS constants for numerical stability. A solver/iteration limit
-is disclosed; a bounded result is a closest found working proposal, not a proof of
-global optimum or infeasibility. After rounding quantities to 0.001 units, stock
-constraints and the complete balance are recomputed. Inventory dose equations are
-also rechecked. The original source targets have small internal disagreements (e.g.
-80/70 versus Ca:P 1.15), so exact simultaneous matches are not always possible.
+The regression stock is 1,000 g pork neck, 1,500 g turkey breast and 500 g chicken
+hearts, with no supplements owned. Native Microsoft Excel replays both the original
+three-meat input and the proposed recipe, comparing 35 totals, references and six
+mass/ratio metrics. The synthetic oracle fixture is committed; the workbook is private.
+This case still has material deviations. Missing data assumed zero also affects food
+selection, so numerical agreement does not establish nutritional completeness.
 
 References remain comparison targets, not verified safe minima, maxima or clinical
 optima. Missing numeric contributions count as zero; undefined ratios from zero

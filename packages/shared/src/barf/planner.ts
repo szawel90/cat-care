@@ -1,3 +1,5 @@
+import { canPlanBarfFood, planBarfStock } from './stock-balance';
+export { canPlanBarfFood } from './stock-balance';
 import { solve, type Constraint } from 'yalps';
 import {
   barfCatalog,
@@ -12,8 +14,14 @@ import {
   type BarfZeroAssumption,
 } from './index';
 
-export const BARF_PLANNER_VERSION = 'barf-balance-v2';
+export const BARF_PLANNER_VERSION = 'barf-balance-v3';
 export const BARF_NEW_PRODUCT_LIMIT = 3;
+export const BARF_PURCHASED_FOOD_RATIO = 0.5;
+
+/** Water and supplements do not count toward the food purchase allowance. */
+export function barfFoodMass(i: BarfIngredient): number {
+  return isBarfBaseFood(i) && i.category !== 'water' ? (i.gramsPerUnit ?? 0) : 0;
+}
 export interface BarfStockItem extends BarfItem {
   useAll: boolean;
 }
@@ -96,7 +104,11 @@ export function isBarfBaseFood(i: BarfIngredient): boolean {
 }
 
 function validateStock(input: BarfInput, context: BarfPlanContext, catalog: BarfCatalog) {
-  if (!context || context.version !== BARF_PLANNER_VERSION || !Array.isArray(context.inventory))
+  if (
+    !context ||
+    ![BARF_PLANNER_VERSION, 'barf-balance-v2'].includes(context.version) ||
+    !Array.isArray(context.inventory)
+  )
     throw new Error('BARF_PLANNER_VERSION_MISMATCH');
   if (!['inventory', 'supplements'].includes(context.mode))
     throw new Error('BARF_INVALID_PLANNER_MODE');
@@ -110,9 +122,21 @@ function validateStock(input: BarfInput, context: BarfPlanContext, catalog: Barf
   for (const stock of context.inventory) {
     if (typeof stock.useAll !== 'boolean') throw new Error('BARF_INVALID_STOCK');
     const i = catalog.ingredients.find((i) => i.id === stock.ingredientId)!;
-    if (context.mode === 'supplements' && (!stock.useAll || !isBarfBaseFood(i)))
+    if (
+      context.mode === 'supplements' &&
+      (context.version === 'barf-balance-v2'
+        ? !stock.useAll || !isBarfBaseFood(i)
+        : !canPlanBarfFood(i) &&
+          !canPlanBarfIngredient(i) &&
+          !(stock.useAll && isBarfBaseFood(i) && i.gramsPerUnit !== null))
+    )
       throw new Error('BARF_BASE_FOODS_ONLY');
-    if (!stock.useAll && !meatCategory(i) && !canPlanBarfIngredient(i))
+    if (
+      !stock.useAll &&
+      !meatCategory(i) &&
+      !canPlanBarfIngredient(i) &&
+      !(context.mode === 'supplements' && canPlanBarfFood(i))
+    )
       throw new Error('BARF_FIXED_AMOUNT_REQUIRED');
   }
 }
@@ -135,7 +159,12 @@ export function validateBarfPlanContext(input: BarfInput, catalog = barfCatalog)
   if (
     purchases.some(
       (item) =>
-        !canPlanBarfIngredient(catalog.ingredients.find((i) => i.id === item.ingredientId)!),
+        !canPlanBarfIngredient(catalog.ingredients.find((i) => i.id === item.ingredientId)!) &&
+        !(
+          context.mode === 'supplements' &&
+          context.version === BARF_PLANNER_VERSION &&
+          canPlanBarfFood(catalog.ingredients.find((i) => i.id === item.ingredientId)!)
+        ),
     )
   )
     throw new Error('BARF_UNSUPPORTED_ADDITION');
@@ -146,6 +175,22 @@ export function validateBarfPlanContext(input: BarfInput, catalog = barfCatalog)
     ).length > 1
   )
     throw new Error('BARF_MULTIPLE_PREMIXES');
+  if (context.mode === 'supplements' && context.version === BARF_PLANNER_VERSION) {
+    let ownedFood = 0,
+      purchasedFood = 0;
+    for (const item of input.items) {
+      const mass =
+        barfFoodMass(catalog.ingredients.find((i) => i.id === item.ingredientId)!) * item.quantity;
+      if (stockIds.has(item.ingredientId)) ownedFood += mass;
+      else purchasedFood += mass;
+    }
+    // Permit only the accumulated 0.001 g display-rounding error.
+    if (
+      ownedFood <= 0 ||
+      purchasedFood > ownedFood * BARF_PURCHASED_FOOD_RATIO + (input.items.length * STEP) / 2 + 1e-8
+    )
+      throw new Error('BARF_FOOD_PURCHASE_LIMIT');
+  }
   const meat = input.items.reduce((sum, item) => {
     const i = catalog.ingredients.find((i) => i.id === item.ingredientId)!;
     return sum + (meatCategory(i) ? item.quantity * (i.gramsPerUnit ?? 0) : 0);
@@ -310,43 +355,12 @@ function ruleScale(rule: string, context: BarfPlanContext): number {
   return Math.max(1e-8, context.meatGrams * perGram);
 }
 
-function balanceErrors(input: BarfInput, context: BarfPlanContext, catalog: BarfCatalog): number[] {
-  const lookup = new Map(catalog.ingredients.map((i) => [i.id, i]));
-  return referenceRules().map(
-    (rule) =>
-      Math.abs(
-        input.items.reduce(
-          (sum, item) =>
-            sum + (coefficient(lookup.get(item.ingredientId)!, rule) ?? 0) * item.quantity,
-          0,
-        ),
-      ) / ruleScale(rule, context),
-  );
-}
-
-function compareBalance(
-  a: BarfInput,
-  b: BarfInput,
-  context: BarfPlanContext,
-  catalog: BarfCatalog,
-): number {
-  const ea = balanceErrors(a, context, catalog),
-    eb = balanceErrors(b, context, catalog);
-  // Scores are re-evaluated after quantity rounding, not trusted from the solver.
-  const square = ea.reduce((s, v) => s + v * v, 0) - eb.reduce((s, v) => s + v * v, 0);
-  if (Math.abs(square) > 1e-6) return square;
-  const worst = Math.max(...ea) - Math.max(...eb);
-  return Math.abs(worst) > 1e-6 ? worst : a.items.length - b.items.length;
-}
-
-/** Simultaneous quantities. Food-base mode optimizes all targets, rather than fixing each product's old dose. */
+/** Fit second-mode source dose equations together within stock and batch bounds. */
 function fit(
   input: BarfInput,
   context: BarfPlanContext,
   additions: BarfIngredient[],
   catalog: BarfCatalog,
-  wholeBalance = false,
-  progress?: { limited: boolean },
 ): BarfInput | null {
   const lookup = new Map(catalog.ingredients.map((i) => [i.id, i]));
   const base = context.inventory.filter(
@@ -361,7 +375,7 @@ function fit(
     const stock = stocks.get(i.id);
     constraints[`bound:${i.id}`] = stock?.useAll
       ? { equal: stock.quantity }
-      : { min: wholeBalance || meatCategory(i) ? 0 : STEP, max: stock?.quantity ?? 100_000 };
+      : { min: meatCategory(i) ? 0 : STEP, max: stock?.quantity ?? 100_000 };
     variables[i.id] = {
       [`bound:${i.id}`]: 1,
       batch: meatCategory(i) ? (i.gramsPerUnit ?? 0) : 0,
@@ -369,10 +383,8 @@ function fit(
     };
   }
   for (const target of additions) {
-    // One premix may be used up to its source quantity; it is never stacked or forced at a full dose.
-    if (wholeBalance && target.suggestion !== 'premix') continue;
     const key = `dose:${target.id}`;
-    constraints[key] = wholeBalance ? { max: 0 } : { equal: 0 };
+    constraints[key] = { equal: 0 };
     for (const i of selected) {
       const value = coefficient(i, target.suggestion!, target);
       if (value === null) return null;
@@ -390,23 +402,6 @@ function fit(
     variables[`short:${rule}`] = { [key]: 1, error: 1 };
     variables[`excess:${rule}`] = { [key]: -1, error: 1 };
   }
-  // Convex least squares: every normalized target contributes, with larger deviations penalized quadratically.
-  // Tangent cuts provide a lower bound; actual squared residuals provide the independent upper bound.
-  let cut = 0;
-  const addCut = (rule: string, point: number) => {
-    const key = `square:${cut++}`;
-    constraints[key] = { max: point * point };
-    variables[`short:${rule}`]![key] = 2 * point;
-    variables[`excess:${rule}`]![key] = 2 * point;
-    variables[`loss:${rule}`]![key] = -1;
-  };
-  if (wholeBalance) {
-    for (const rule of referenceRules()) {
-      variables[`loss:${rule}`] = { squaredError: 1 };
-      for (const point of [0, 0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64]) addCut(rule, point);
-    }
-  }
-
   // Eliminate fixed food quantities before simplex: their nutrient totals become RHS constants.
   // This avoids repeatedly pivoting large gram constraints beside trace nutrient coefficients.
   const fixed = new Map(
@@ -431,35 +426,8 @@ function fit(
       { direction: 'minimize', objective, constraints, variables },
       { maxPivots: 8192, checkCycles: true, precision: 1e-8 },
     );
-  let solution = run(wholeBalance ? 'squaredError' : 'error');
+  const solution = run('error');
   if (solution.status !== 'optimal') return null;
-  if (wholeBalance) {
-    let best = solution;
-    let bestLoss = Infinity;
-    let converged = false;
-    for (let iteration = 0; iteration < 32; iteration++) {
-      const values = new Map(solution.variables);
-      const errors = referenceRules().map((rule) => ({
-        rule,
-        error: (values.get(`short:${rule}`) ?? 0) + (values.get(`excess:${rule}`) ?? 0),
-      }));
-      const loss = errors.reduce((sum, item) => sum + item.error * item.error, 0);
-      if (loss < bestLoss) {
-        best = solution;
-        bestLoss = loss;
-      }
-      if (loss - solution.result <= 1e-7 * Math.max(1, loss)) {
-        converged = true;
-        break;
-      }
-      errors.forEach(({ rule, error }) => addCut(rule, error));
-      const next = run('squaredError');
-      if (next.status !== 'optimal') break;
-      solution = next;
-    }
-    if (!converged && progress) progress.limited = true;
-    solution = best;
-  }
   const quantities = new Map(solution.variables);
   const items = selected
     .map((i) => {
@@ -477,7 +445,7 @@ function fit(
   } catch {
     return null;
   }
-  if (!wholeBalance) {
+  {
     for (const target of additions) {
       const residual = items.reduce(
         (sum, item) =>
@@ -505,7 +473,9 @@ export function planBarf(
   context: BarfPlanContext,
   catalog = barfCatalog,
 ): BarfPlan {
+  if (context.version !== BARF_PLANNER_VERSION) throw new Error('BARF_PLANNER_VERSION_MISMATCH');
   validateStock(input, context, catalog);
+  if (context.mode === 'supplements') return planBarfStock(input, context, catalog);
   const stocks = new Map(context.inventory.map((i) => [i.ingredientId, i]));
   const pool = catalog.ingredients
     .filter((i) => canPlanBarfIngredient(i) && !stocks.get(i.id)?.useAll)
@@ -525,33 +495,6 @@ export function planBarf(
   };
   const baseline = fit(input, context, [], catalog);
   if (!baseline) return { ...empty, checkedCombinations: 1 };
-  if (context.mode === 'supplements') {
-    const regular = pool.filter((i) => i.suggestion !== 'premix');
-    const premixes = pool.filter((i) => i.suggestion === 'premix');
-    const candidates: BarfInput[] = [baseline];
-    const progress = { limited: false };
-    for (const premix of [undefined, ...premixes]) {
-      const candidate = fit(
-        input,
-        context,
-        [...regular, ...(premix ? [premix] : [])],
-        catalog,
-        true,
-        progress,
-      );
-      if (candidate) candidates.push(candidate);
-      else progress.limited = true;
-    }
-    candidates.sort((a, b) => compareBalance(a, b, context, catalog));
-    const best = candidates[0]!;
-    return {
-      ...assessBarfPlan(best, catalog),
-      input: best,
-      status: best === baseline ? 'no-improvement' : 'proposal',
-      checkedCombinations: premixes.length + 2,
-      searchLimited: progress.limited,
-    };
-  }
   type Node = {
     additions: BarfIngredient[];
     input: BarfInput;

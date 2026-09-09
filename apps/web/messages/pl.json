@@ -1548,10 +1548,10 @@
     "planStatus_off-target": "Cel źródłowy nieosiągnięty",
     "planStatus_missing-data": "Nie można ocenić",
     "planMissingFrom": "Brakujące dane: {names}",
-    "planSupplementsMode": "3. Baza produktów + wyliczone suplementy",
-    "planFoodsHint": "Podaj mięsa, ryby, wątrobę, żółtka i inne produkty bazowe. Ich ilości pozostają stałe; kalkulator zaproponuje suplementy bez limitu trzech produktów do dokupienia.",
-    "planSupplementsInstructions": "Zachowaj wpisane ilości mięs, ryb i innych produktów bazowych. Kalkulator dobiera wszystkie dostępne dodatki wspólnie, zmniejszając łączne względne odchylenia od wszystkich celów. Duże różnice mają większą wagę. W tym trybie nie ma limitu trzech nowych produktów.",
-    "planRemoveSupplements": "Ten tryb zaczyna się od samych produktów bazowych. Usuń wpisane suplementy lub wybierz tryb zapasów; zachowaliśmy Twoje wpisy.",
+    "planSupplementsMode": "3. Receptura z mojego zapasu + suplementy",
+    "planFoodsHint": "Wpisz posiadane produkty i suplementy oraz ich maksymalne dostępne ilości. Nie musisz zużyć wszystkiego. Przed zastosowaniem sprawdź propozycję ilości, pozostałości i zakupów.",
+    "planSupplementsInstructions": "Dobieramy proporcje żywności i rozważamy produkty do dokupienia, a następnie uzupełniamy mieszankę suplementami. Najpierw ograniczamy największe względne odchylenie, potem poprawiamy pozostałe cele łącznie. Ten tryb nie ma limitu trzech produktów.",
+    "planRemoveSupplements": "Zapas zawiera produkt bez obsługi automatycznego dozowania lub ze znaną jednostką, ale nieznaną masą. Użyj dla niego ręcznego bilansu; wpisane dane zostały zachowane.",
     "planBalanceAfter": "Zapasy nie są jeszcze recepturą. Znajdź i zastosuj propozycję, aby zobaczyć jej pełny bilans, zapisać ją lub wydrukować. Możesz też przełączyć się na bilans ręczny.",
     "allMissingAssumption": "Założenie obliczeń: każdą brakującą wartość odżywczą liczymy jako 0. Dane źródłowe pozostają bez zmian; uzupełnimy je później.",
     "allMissingExplanation": "Wartości oznaczone * przyjmują 0 za brakujące dane. Rozwiń wiersz, aby zobaczyć, których produktów dotyczy to założenie.",
@@ -1561,6 +1561,9 @@
     "missingSuggestionAssumption": "Brakujące wartości odżywcze liczymy jako 0 dla: {names}.",
     "planBalanceCriteria": "Wszystkie dostępne cele źródłowe oceniamy razem, uwzględniając niedobory i nadmiary. Ca:P 1,15, K:Na 1,35, wilgotność 75% i tłuszcz w suchej masie 25% są celami źródłowymi, a nie zweryfikowanym optimum klinicznym. Brakujące wartości odżywcze liczymy jako 0; mianownik równy 0 nie pozwala wyznaczyć proporcji.",
     "planDeviation": "Odchylenie od celu: {value}%",
-    "planUndefinedRatio": "Proporcja niedostępna (zerowy mianownik lub nieznana masa)"
+    "planUndefinedRatio": "Proporcja niedostępna (zerowy mianownik lub nieznana masa)",
+    "planFoodPurchaseLimit": "Żywność do dokupienia: najwyżej połowa masy żywności wykorzystanej z zapasu. Wodę i suplementy liczymy osobno.",
+    "planLargestDeviations": "Największe pozostałe odchylenia",
+    "planJointSelection": "Dobór do całej mieszanki; końcowy bilans znajduje się poniżej."
   }
 }

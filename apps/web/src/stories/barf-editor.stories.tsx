@@ -142,6 +142,14 @@ export const BaseFoodsProposal: Story = {
     const t = storyMessages(globals).Barf;
     await userEvent.selectOptions(canvas.getByLabelText(t.planMode), 'supplements');
     await expect(canvas.getByText(t.planFoodsHint)).toBeVisible();
+    await expect(canvas.getByText(t.planFoodPurchaseLimit)).toBeVisible();
+    const lock = canvas.getByRole('checkbox');
+    await expect(lock).not.toBeChecked();
+    lock.focus();
+    await userEvent.keyboard(' ');
+    await expect(lock).toBeChecked();
+    await userEvent.keyboard(' ');
+    await expect(lock).not.toBeChecked();
     await expect(canvas.queryByLabelText(t.planBatch)).not.toBeInTheDocument();
     await userEvent.click(canvas.getByRole('button', { name: t.planFind }));
     await waitFor(() => expect(canvas.getByRole('button', { name: t.planApply })).toBeVisible(), {
@@ -189,8 +197,9 @@ export const FoodModePreservesEnteredSupplements: Story = {
   play: async ({ canvas, userEvent, globals }) => {
     const t = storyMessages(globals).Barf;
     await userEvent.selectOptions(canvas.getByLabelText(t.planMode), 'supplements');
-    await expect(canvas.getByText(t.planRemoveSupplements)).toBeVisible();
-    await expect(canvas.getByRole('button', { name: t.planFind })).toBeDisabled();
+    await expect(canvas.queryByText(t.planRemoveSupplements)).not.toBeInTheDocument();
+    await expect(canvas.getByRole('button', { name: t.planFind })).toBeEnabled();
+    for (const lock of canvas.getAllByRole('checkbox')) await expect(lock).not.toBeChecked();
     await userEvent.selectOptions(canvas.getByLabelText(t.planMode), 'recipe');
     await expect(canvas.getByRole('button', { name: t.saveRecipe })).toBeEnabled();
   },

@@ -290,6 +290,28 @@ describe('Account lifecycle and access isolation', () => {
     expect(
       snapshot.ingredients.find((i: { id: string }) => i.id === 'meat-041').nutrients.taurine,
     ).toBeNull();
+    const foodInput: BarfInput = {
+      ...input,
+      title: 'Synthetic food purchase limit',
+      items: [
+        { ingredientId: 'meat-041', quantity: 1000 },
+        { ingredientId: 'meat-094', quantity: 501 },
+      ],
+      planning: {
+        ...input.planning!,
+        mode: 'supplements',
+        meatGrams: 1501,
+        inventory: [{ ingredientId: 'meat-041', quantity: 1500, useAll: false }],
+      },
+    };
+    expect((await owner(path, { input: foodInput })).statusCode).toBe(400);
+    foodInput.items[1]!.quantity = 500;
+    foodInput.planning!.meatGrams = 1500;
+    const foodSaved = await owner(path, { input: foodInput });
+    expect(foodSaved.statusCode).toBe(201);
+    expect(foodSaved.json().revisions[0].snapshot.planning.unused).toEqual([
+      { ingredientId: 'meat-041', quantity: 500 },
+    ]);
     const legacyInput = {
       ...emptyBarfInput(),
       title: 'Synthetic legacy',
