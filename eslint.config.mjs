@@ -13,6 +13,8 @@ export default defineConfig([
     '**/generated/**',
     '**/schema.d.ts',
     '**/coverage/**',
+    '**/storybook-static/**',
+    'private/**',
     'playwright-report/**',
     'test-results/**',
   ]),
@@ -20,6 +22,7 @@ export default defineConfig([
   { languageOptions: { globals: globals.node } },
   {
     files: ['**/*.{ts,tsx}'],
+    languageOptions: { parserOptions: { tsconfigRootDir: import.meta.dirname } },
     extends: [tseslint.configs.recommended],
     rules: {
       '@typescript-eslint/no-unused-vars': [
