@@ -52,9 +52,12 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm typecheck:storybook
       - run: pnpm test
       - run: pnpm build
       - run: pnpm db:migrate
       - run: pnpm test:integration
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - run: pnpm build:storybook
+      - run: pnpm test:components

@@ -14,9 +14,11 @@ import { InstallApp } from './install-app';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { TabsContent } from '@/components/ui/tabs';
 import { AccountMenu } from './account-menu';
-import { Eye, EyeOff, CircleAlert, CircleCheck } from 'lucide-react';
+import { EmailField, PasswordField } from './account-fields';
+import { Feedback } from './feedback';
+import { AccountSettingsTabs } from './account-settings-tabs';
 
 type View = 'login' | 'register' | 'forgot-password' | 'reset-password' | 'account';
 type Session = typeof client.$Infer.Session.session;
@@ -29,63 +31,6 @@ async function check<
   const response = await result;
   if (response.error) throw new Error(authErrorKey(response.error));
   return response;
-}
-
-function PasswordField({
-  id,
-  label,
-  newPassword = false,
-}: {
-  id: string;
-  label?: string;
-  newPassword?: boolean;
-}) {
-  const t = useTranslations('Account');
-  const [visible, setVisible] = useState(false);
-  return (
-    <div className="field">
-      <Label htmlFor={id}>{label ?? t('password')}</Label>
-      <div className="password-wrap">
-        <Input
-          id={id}
-          name={id}
-          type={visible ? 'text' : 'password'}
-          autoComplete={newPassword ? 'new-password' : 'current-password'}
-          minLength={newPassword ? 12 : undefined}
-          maxLength={128}
-          required
-        />
-        <Button
-          type="button"
-          className="eye"
-          aria-label={visible ? t('hidePassword') : t('showPassword')}
-          aria-pressed={visible}
-          onClick={() => setVisible(!visible)}
-        >
-          {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
-        </Button>
-      </div>
-      {newPassword && <p className="hint">{t('passwordHint')}</p>}
-    </div>
-  );
-}
-
-function EmailField({ id = 'email', label }: { id?: string; label?: string }) {
-  const t = useTranslations('Account');
-  return (
-    <div className="field">
-      <Label htmlFor={id}>{label ?? t('email')}</Label>
-      <Input
-        id={id}
-        name={id}
-        type="email"
-        autoComplete="email"
-        placeholder={t('emailPlaceholder')}
-        required
-        maxLength={254}
-      />
-    </div>
-  );
 }
 
 export function AccountApp({ view }: { view: View }) {
@@ -242,17 +187,9 @@ export function AccountApp({ view }: { view: View }) {
   const feedback = (
     <>
       {(error || params.get('error')) && (
-        <div className="feedback error" role="alert">
-          <CircleAlert aria-hidden="true" />
-          <span>{error ? t(error) : t('linkError')}</span>
-        </div>
+        <Feedback tone="error">{error ? t(error) : t('linkError')}</Feedback>
       )}
-      {notice && (
-        <div className="feedback" role="status">
-          <CircleCheck aria-hidden="true" />
-          <span>{t(notice)}</span>
-        </div>
-      )}
+      {notice && <Feedback>{t(notice)}</Feedback>}
     </>
   );
 
@@ -558,22 +495,11 @@ export function AccountApp({ view }: { view: View }) {
                       <p className="hint">{t('openSettingsHint')}</p>
                     </div>
                   ) : (
-                    <Tabs value={tab!} onValueChange={navigateSettings} activationMode="manual">
-                      <TabsList
-                        className="account-nav"
-                        aria-label={t('accountSettings')}
-                        variant="line"
-                      >
-                        <TabsTrigger value="profile" disabled={busy}>
-                          {t('profile')}
-                        </TabsTrigger>
-                        <TabsTrigger value="security" disabled={busy}>
-                          {t('security')}
-                        </TabsTrigger>
-                        <TabsTrigger value="data" disabled={busy}>
-                          {t('privacy')}
-                        </TabsTrigger>
-                      </TabsList>
+                    <AccountSettingsTabs
+                      value={tab!}
+                      onValueChange={navigateSettings}
+                      disabled={busy}
+                    >
                       {feedback}
                       <TabsContent value="profile">
                         <form
@@ -819,7 +745,7 @@ export function AccountApp({ view }: { view: View }) {
                           </form>
                         </details>
                       </TabsContent>
-                    </Tabs>
+                    </AccountSettingsTabs>
                   )}
                 </div>
               ))}

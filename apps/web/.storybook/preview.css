@@ -1,0 +1,21 @@
+/* Only the workbench frame belongs here. Component styles come from the application. */
+.workbench-stage {
+  width: min(100%, 48rem);
+  padding: 24px;
+  margin-inline: auto;
+}
+.workbench-stack {
+  display: grid;
+  gap: 16px;
+}
+.workbench-menu {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 300px;
+  align-items: flex-start;
+}
+@media (max-width: 480px) {
+  .workbench-stage {
+    padding: 16px;
+  }
+}

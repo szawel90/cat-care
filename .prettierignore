@@ -17,3 +17,9 @@ apps/web/next-env.d.ts
 
 # Local assistant instructions
 CLAUDE.md
+
+# Generated component workbench
+storybook-static/
+
+# Private research and isolated worktrees
+/private/
