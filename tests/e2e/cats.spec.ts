@@ -104,8 +104,11 @@ test('creates photo and name-only profiles, reuses a home, preserves observation
   await page.getByLabel(labels.homeChoice).selectOption(lunaId);
   await page.getByRole('button', { name: labels.saveCat, exact: true }).click();
   await expect(page.locator('.cat-identity h2')).toHaveText('Milo');
+  await expect(page).toHaveURL(/\/cats\/[a-f0-9-]+$/);
   const miloId = new URL(page.url()).pathname.split('/').pop()!;
-  const milo = await (await page.request.get(`/api/cats/${miloId}`)).json();
+  const miloResponse = await page.request.get(`/api/cats/${miloId}`);
+  expect(miloResponse.status()).toBe(200);
+  const milo = await miloResponse.json();
   expect(milo.hasPhoto).toBe(false);
   expect(milo.attributes).toEqual({});
   expect(milo.household.facts.children).toBe('yes');
