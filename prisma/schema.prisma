@@ -49,6 +49,8 @@ model User {
   sessions           AuthSession[]
   accessApproval     AccessApproval?
   emailActions       EmailAction[]
+  barfRecipes        BarfRecipe[]
+  barfPreferences    BarfPreferences?
   cats               Cat[]
   households         Household[]
 }
@@ -216,4 +218,34 @@ model PortraitRevision {
 
   @@unique([catId, revision])
   @@index([catId, assessmentId])
+}
+
+model BarfRecipe {
+  id             String               @id @default(uuid()) @db.Uuid
+  userId         String               @db.Uuid
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentVersion Int                  @default(1)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  archivedAt     DateTime?
+  revisions      BarfRecipeRevision[]
+
+  @@index([userId, updatedAt])
+}
+
+model BarfRecipeRevision {
+  id        String     @id @default(uuid()) @db.Uuid
+  recipeId  String     @db.Uuid
+  recipe    BarfRecipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  version   Int
+  createdAt DateTime   @default(now())
+  snapshot  Json
+
+  @@unique([recipeId, version])
+}
+
+model BarfPreferences {
+  userId        String   @id @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ingredientIds String[] @default([])
 }

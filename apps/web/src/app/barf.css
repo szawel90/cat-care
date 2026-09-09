@@ -1,0 +1,409 @@
+.barf-shell {
+  width: min(1440px, 100%);
+  margin: 12px auto 40px;
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 24px;
+  padding: 0 24px;
+}
+.barf-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: start;
+  padding-top: 16px;
+}
+.barf-navigation a {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 48px;
+  padding: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  border-radius: 10px;
+}
+.barf-navigation a[aria-current] {
+  color: var(--accent);
+  background: var(--ui-avatar);
+  font-weight: 650;
+}
+.barf-navigation svg {
+  width: 22px;
+  flex-shrink: 0;
+}
+.barf-main {
+  min-width: 0;
+}
+.barf-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.barf-page-heading h1 {
+  font:
+    400 clamp(28px, 3vw, 38px)/1.2 Georgia,
+    serif;
+  margin: 8px 0;
+}
+.barf-page-heading p {
+  margin: 6px 0;
+  color: var(--muted);
+}
+.barf-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.barf-ingredients-column,
+.barf-summary-column {
+  min-width: 0;
+}
+.barf-panel {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--ui-card);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.barf-panel h2 {
+  font-size: 18px;
+  margin: 0 0 16px;
+}
+.barf-panel fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.barf-panel label,
+.barf-library label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.barf-panel input {
+  width: 100%;
+  min-width: 0;
+}
+.barf-panel select,
+.barf-library select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--ui-input);
+  border-radius: 6px;
+  padding: 8px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--ui-background);
+}
+.barf-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.barf-wide-field {
+  grid-column: 1 / -1;
+}
+.barf-filter-row {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.barf-filter-row > div {
+  flex: 1;
+  min-width: 100px;
+}
+.barf-filter-row button {
+  white-space: normal;
+}
+.barf-hint {
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.barf-draft-notice {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+  padding: 12px;
+  background: var(--ui-avatar);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.barf-draft-notice svg {
+  flex: 0 0 20px;
+  width: 20px;
+  color: var(--accent);
+}
+.barf-draft-notice p {
+  margin: 0;
+}
+.barf-metrics {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin: 20px 0;
+}
+.barf-metrics dt {
+  font-size: 13px;
+  color: var(--muted);
+}
+.barf-metrics dd {
+  margin: 4px 0 0;
+  font-size: clamp(19px, 2vw, 25px);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.barf-item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.barf-item-list > li {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+.barf-item-list > li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.barf-item-list strong {
+  display: block;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.barf-item-list .barf-hint {
+  display: block;
+}
+.barf-item-amount {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.barf-item-amount input {
+  width: 120px;
+  max-width: 50%;
+}
+.barf-item-amount button {
+  margin-left: auto;
+  min-width: 44px;
+}
+.barf-details {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+}
+.barf-details > summary,
+.barf-source-details > summary {
+  cursor: pointer;
+  padding: 8px 0;
+  min-height: 44px;
+  font-weight: 600;
+}
+.barf-details p {
+  font-size: 13px;
+}
+.barf-nutrients {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.barf-nutrients th,
+.barf-nutrients td {
+  text-align: right;
+  vertical-align: top;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.barf-nutrients th:first-child {
+  width: 48%;
+  text-align: left;
+  font-weight: 500;
+}
+.barf-nutrients small {
+  display: block;
+  font-weight: 400;
+}
+.barf-nutrients details {
+  font-weight: 400;
+  color: var(--muted);
+}
+.barf-nutrients summary {
+  cursor: pointer;
+  padding: 6px 0;
+}
+.barf-nutrients ul {
+  padding-left: 12px;
+}
+.barf-ratios > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  font-size: 14px;
+}
+.barf-ratios dd {
+  margin: 0;
+}
+.barf-save-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.barf-save-actions button {
+  white-space: normal;
+}
+.barf-save-actions button[type='submit'] {
+  flex-basis: 100%;
+}
+.barf-library {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding: 16px 0;
+  margin-bottom: 8px;
+}
+.barf-library > div {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.barf-library button {
+  white-space: normal;
+}
+.barf-calculation-note {
+  border-left: 3px solid var(--accent);
+  padding: 0 0 0 12px;
+  margin-top: 16px;
+  font-size: 14px;
+}
+.barf-calculation-note strong {
+  display: block;
+  margin-bottom: 8px;
+}
+.barf-source-details {
+  font-size: 13px;
+  margin-top: 8px;
+  color: var(--muted);
+}
+.barf-source-details p {
+  margin: 6px 0;
+}
+.barf-access {
+  width: min(640px, 100%);
+  margin: 48px auto;
+  padding: 24px;
+}
+.barf-print-only {
+  display: none;
+}
+.barf-account-entry {
+  display: block;
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  text-decoration: none;
+}
+.barf-account-entry strong {
+  display: block;
+}
+.barf-account-entry span {
+  color: var(--muted);
+  font-size: 14px;
+}
+@media (min-width: 1100px) {
+  .barf-summary-column {
+    position: sticky;
+    top: 16px;
+  }
+}
+@media (max-width: 1100px) {
+  .barf-shell {
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 16px;
+    padding: 0 16px;
+  }
+  .barf-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .barf-shell {
+    display: block;
+    padding: 0 12px;
+    margin-bottom: 100px;
+  }
+  .barf-navigation {
+    position: fixed;
+    z-index: 20;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 4px 8px max(4px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    background: var(--ui-card);
+  }
+  .barf-navigation a {
+    flex: 1;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    text-align: center;
+    min-width: 0;
+  }
+  .barf-page-heading {
+    align-items: start;
+    flex-wrap: wrap;
+  }
+  .barf-panel {
+    padding: 16px;
+  }
+  .barf-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .barf-page-heading h1 {
+    font-size: 30px;
+  }
+  .barf-main {
+    scroll-margin-bottom: 90px;
+  }
+}
+@media print {
+  .barf-no-print,
+  .barf-editor,
+  .barf-main > .feedback {
+    display: none !important;
+  }
+  .barf-print-only {
+    display: block;
+    color: #000;
+    background: #fff;
+  }
+  .barf-shell {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+}

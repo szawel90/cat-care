@@ -1,3 +1,4 @@
+import { emptyBarfInput } from '@cat-care/shared';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import 'reflect-metadata';
@@ -38,6 +39,7 @@ describe('Account lifecycle and access isolation', () => {
       '202609080004_account_theme',
       '202609090001_account_language',
       '202609090002_cats_and_households',
+      '202609090010_barf_recipes',
     ]) {
       const sql = await readFile(
         resolve(__dirname, '../../../prisma/migrations', name, 'migration.sql'),
@@ -46,7 +48,7 @@ describe('Account lifecycle and access isolation', () => {
       for (const statement of sql.split(';').filter((part) => part.trim())) {
         await admin.$executeRawUnsafe(
           statement.replace(
-            /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus|ThemePreference|LanguagePreference|Household|Cat|PortraitRevision|CatVersion|HouseholdVersion)"/g,
+            /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus|ThemePreference|LanguagePreference|Household|Cat|PortraitRevision|CatVersion|HouseholdVersion|BarfRecipe|BarfRecipeRevision|BarfPreferences)"/g,
             `"${schema}"."$1"`,
           ),
         );
@@ -137,6 +139,100 @@ describe('Account lifecycle and access isolation', () => {
     expect(response.statusCode).toBe(200);
     return send;
   }
+
+  it('isolates BARF recipes, preserves revisions and rejects stale writes and untrusted input', async () => {
+    const ownerEmail = 'barf-owner@example.test';
+    const otherEmail = 'barf-other@example.test';
+    const owner = await register(ownerEmail);
+    await owner(link(ownerEmail, 'Verify'));
+    await signIn(ownerEmail, owner);
+    const other = await register(otherEmail);
+    await other(link(otherEmail, 'Verify'));
+    await signIn(otherEmail, other);
+    const userId = (await owner('/v1/account')).json().id;
+    const path = '/v1/account/barf/recipes';
+    const input = {
+      ...emptyBarfInput(),
+      title: 'Synthetic recipe',
+      catName: 'Synthetic cat',
+      items: [
+        { ingredientId: 'meat-076', quantity: 1000 },
+        { ingredientId: 'water', quantity: 300 },
+      ],
+    };
+    expect((await browser()(path)).statusCode).toBe(401);
+    expect((await owner(path, { input }, { origin: 'https://untrusted.example' })).statusCode).toBe(
+      403,
+    );
+    expect((await owner(path, {})).statusCode).toBe(400);
+    expect((await owner(path, { input: { ...input, result: { days: 999 } } })).statusCode).toBe(
+      400,
+    );
+    expect(
+      (await owner(path, { input: { ...input, items: [{ ingredientId: 'water', quantity: -1 }] } }))
+        .statusCode,
+    ).toBe(400);
+    expect(
+      (
+        await owner(path, {
+          input: { ...input, items: [{ ingredientId: 'water', quantity: 100 }] },
+        })
+      ).statusCode,
+    ).toBe(400);
+    expect((await owner(path, { input: { ...input, engineVersion: 'old' } })).statusCode).toBe(400);
+    const created = await owner(path, { input });
+    expect(created.statusCode).toBe(201);
+    expect(created.headers['cache-control']).toBe('no-store');
+    const recipe = created.json();
+    expect(recipe.revisions[0].snapshot.result.days).toBe(10);
+    expect(recipe.revisions[0].snapshot.ingredients).toHaveLength(2);
+    const idPath = path + '/' + recipe.id;
+    expect((await other(idPath)).statusCode).toBe(404);
+    expect((await other(idPath, { input, expectedVersion: 1 })).statusCode).toBe(404);
+    expect((await other(idPath + '/archive', { expectedVersion: 1 })).statusCode).toBe(404);
+    expect((await other(path)).json()).toEqual([]);
+    expect((await owner(idPath, { expectedVersion: 1 })).statusCode).toBe(400);
+    const concurrent = await Promise.all([
+      owner(idPath, { input: { ...input, title: 'Version A' }, expectedVersion: 1 }),
+      owner(idPath, { input: { ...input, title: 'Version B' }, expectedVersion: 1 }),
+    ]);
+    expect(concurrent.map((response) => response.statusCode).sort()).toEqual([200, 409]);
+    const current = (await owner(idPath)).json();
+    expect(current.currentVersion).toBe(2);
+    expect(current.revisions).toHaveLength(2);
+    expect(current.revisions[1]).toMatchObject({
+      version: 1,
+      status: 'superseded',
+      snapshot: { input },
+    });
+    expect((await owner(idPath, { input, expectedVersion: 1 })).statusCode).toBe(409);
+    const archived = await owner(idPath + '/archive', { expectedVersion: 2 });
+    expect(archived.statusCode).toBe(200);
+    expect(archived.json().revisions[0].status).toBe('withdrawn');
+    expect(archived.json().revisions).toHaveLength(3);
+    expect((await owner(idPath, { input, expectedVersion: 3 })).statusCode).toBe(409);
+    const favoritePath = '/v1/account/barf/favorites';
+    expect((await owner(favoritePath, { ingredientIds: ['meat-076'] })).json()).toEqual({
+      ingredientIds: ['meat-076'],
+    });
+    expect((await other(favoritePath)).json()).toEqual({ ingredientIds: [] });
+    expect((await owner(favoritePath, { ingredientIds: ['unknown'] })).statusCode).toBe(400);
+    const exported = (await owner('/v1/account/export')).json();
+    expect(exported.barfRecipes).toHaveLength(1);
+    expect(exported.barfRecipes[0].revisions).toHaveLength(3);
+    expect(exported.barfFavorites).toEqual(['meat-076']);
+    expect((await other('/v1/account/export')).json().barfRecipes).toEqual([]);
+    await prisma.accessApproval.update({
+      where: { email: ownerEmail },
+      data: { status: 'REVOKED' },
+    });
+    expect((await owner(path)).statusCode).toBe(403);
+    expect((await owner(favoritePath)).statusCode).toBe(403);
+    await prisma.user.delete({ where: { id: userId } });
+    expect(await prisma.barfRecipe.count({ where: { userId } })).toBe(0);
+    expect(await prisma.barfRecipeRevision.count({ where: { recipeId: recipe.id } })).toBe(0);
+    expect(await prisma.barfPreferences.count({ where: { userId } })).toBe(0);
+  });
 
   it('manages pilot admission through the local operator command', async () => {
     const command = resolve(__dirname, '../dist/manage-access.js');

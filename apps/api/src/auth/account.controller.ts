@@ -1,3 +1,4 @@
+import { BarfService } from '../barf/barf.service';
 import { CatsService } from '../cats/cats.service';
 import { AccountPreferencesDto, UpdateAccountPreferencesDto } from './account-preferences.dto';
 import { Body, Post, HttpCode, BadRequestException } from '@nestjs/common';
@@ -28,6 +29,7 @@ export class AccountController {
     private readonly auth: AuthService,
     private readonly prisma: PrismaService,
     private readonly cats: CatsService,
+    private readonly barf: BarfService,
   ) {}
 
   @Get('options')
@@ -112,6 +114,8 @@ export class AccountController {
       exportedAt: new Date().toISOString(),
       profile: user,
       ...(await this.cats.exportData(current.user.id)),
+      barfRecipes: await this.barf.list(current.user.id),
+      barfFavorites: (await this.barf.favorites(current.user.id)).ingredientIds,
     };
   }
 }

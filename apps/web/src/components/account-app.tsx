@@ -514,6 +514,10 @@ export function AccountApp({ view }: { view: View }) {
                           </div>
                         </div>
                         <p className="hint">{t('openSettingsHint')}</p>
+                        <Link href="/barf" className="barf-account-entry">
+                          <strong>{t('barfTitle')}</strong>
+                          <span>{t('barfDescription')}</span>
+                        </Link>
                       </div>
                       <YourCats />
                     </>

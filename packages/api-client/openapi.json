@@ -789,6 +789,203 @@
         },
         "tags": ["Cats"]
       }
+    },
+    "/v1/account/barf/recipes": {
+      "get": {
+        "operationId": "BarfController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BarfRecipeDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["BARF recipes"]
+      },
+      "post": {
+        "operationId": "BarfController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveBarfRecipeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BarfRecipeDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["BARF recipes"]
+      }
+    },
+    "/v1/account/barf/recipes/{id}": {
+      "get": {
+        "operationId": "BarfController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BarfRecipeDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["BARF recipes"]
+      },
+      "post": {
+        "operationId": "BarfController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBarfRecipeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BarfRecipeDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["BARF recipes"]
+      }
+    },
+    "/v1/account/barf/recipes/{id}/archive": {
+      "post": {
+        "operationId": "BarfController_archive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveBarfRecipeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BarfRecipeDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["BARF recipes"]
+      }
+    },
+    "/v1/account/barf/favorites": {
+      "get": {
+        "operationId": "BarfController_favorites",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BarfFavoritesDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["BARF recipes"]
+      },
+      "post": {
+        "operationId": "BarfController_saveFavorites",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BarfFavoritesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BarfFavoritesDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["BARF recipes"]
+      }
     }
   },
   "info": {
@@ -873,6 +1070,36 @@
           }
         }
       },
+      "BarfRecipeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "currentVersion": {
+            "type": "number"
+          },
+          "archivedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revisions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Immutable, versioned inputs, source ingredient snapshots and computed results. See the shared BarfRecipeRevision type."
+          }
+        },
+        "required": ["id", "currentVersion", "createdAt", "revisions"]
+      },
       "ExportedLoginMethodDto": {
         "type": "object",
         "properties": {
@@ -936,6 +1163,18 @@
       "AccountExportDto": {
         "type": "object",
         "properties": {
+          "barfRecipes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BarfRecipeDto"
+            }
+          },
+          "barfFavorites": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "cats": {
             "type": "array",
             "items": {
@@ -960,7 +1199,7 @@
             "$ref": "#/components/schemas/ExportedProfileDto"
           }
         },
-        "required": ["cats", "households", "exportedAt", "profile"]
+        "required": ["barfRecipes", "barfFavorites", "cats", "households", "exportedAt", "profile"]
       },
       "CatResponseDto": {
         "type": "object",
@@ -1278,6 +1517,93 @@
           }
         },
         "required": ["expectedRevision", "questionId", "answer"]
+      },
+      "BarfItemDto": {
+        "type": "object",
+        "properties": {
+          "ingredientId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 0.001,
+            "maximum": 100000
+          }
+        },
+        "required": ["ingredientId", "quantity"]
+      },
+      "BarfInputDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "catName": {
+            "type": "string"
+          },
+          "catWeightKg": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 30
+          },
+          "catalogVersion": {
+            "type": "string"
+          },
+          "engineVersion": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BarfItemDto"
+            }
+          }
+        },
+        "required": ["title", "catName", "catWeightKg", "catalogVersion", "engineVersion", "items"]
+      },
+      "SaveBarfRecipeDto": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "$ref": "#/components/schemas/BarfInputDto"
+          }
+        },
+        "required": ["input"]
+      },
+      "UpdateBarfRecipeDto": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "$ref": "#/components/schemas/BarfInputDto"
+          },
+          "expectedVersion": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": ["input", "expectedVersion"]
+      },
+      "ArchiveBarfRecipeDto": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": ["expectedVersion"]
+      },
+      "BarfFavoritesDto": {
+        "type": "object",
+        "properties": {
+          "ingredientIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["ingredientIds"]
       }
     }
   }

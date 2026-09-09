@@ -33,7 +33,7 @@ try {
       .filter((part) => part.trim() && !part.includes('CREATE EXTENSION'))) {
       await admin.$executeRawUnsafe(
         statement.replace(
-          /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus|ThemePreference|LanguagePreference|Household|Cat|PortraitRevision|CatVersion|HouseholdVersion)"/g,
+          /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus|ThemePreference|LanguagePreference|Household|Cat|PortraitRevision|CatVersion|HouseholdVersion|BarfRecipe|BarfRecipeRevision|BarfPreferences)"/g,
           `"${schema}"."$1"`,
         ),
       );
@@ -45,6 +45,8 @@ try {
   const prisma = new PrismaService();
   await prisma.accessApproval.createMany({
     data: [
+      'barf-desktop@example.test',
+      'barf-mobile@example.test',
       'desktop@example.test',
       'mobile@example.test',
       'appearance-desktop@example.test',

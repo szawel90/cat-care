@@ -1,0 +1,303 @@
+{
+  "oracle": "Microsoft Excel, original 1.9c BIFF formulas restored in memory; source cells referenced directly; macros disabled; synthetic comparison recipes, not feeding recommendations",
+  "sourceSha256": "fb60d133c5e4069c7ce31842a21e189653860a687a81665a7e1f3521ad2fffc1",
+  "cases": [
+    {
+      "name": "Meat, liver, yolks, taurine and water",
+      "catWeightKg": 4,
+      "items": [
+        {
+          "ingredientId": "meat-076",
+          "quantity": 1000
+        },
+        {
+          "ingredientId": "supplement-036",
+          "quantity": 40
+        },
+        {
+          "ingredientId": "supplement-059",
+          "quantity": 2
+        },
+        {
+          "ingredientId": "supplement-016",
+          "quantity": 2.4
+        },
+        {
+          "ingredientId": "water",
+          "quantity": 300
+        }
+      ],
+      "expected": {
+        "meatGrams": 1000.0,
+        "knownMixtureGrams": 1374.4,
+        "days": 10.0,
+        "dailyPortionGrams": 137.44,
+        "totals": {
+          "energy": 1205.0508444444445,
+          "protein": 249.81699999999998,
+          "fat": 20.703333333333333,
+          "water": 1070.202888888889,
+          "carbohydrate": 1.012063492063492,
+          "fiber": 0.0,
+          "ash": 0.0,
+          "calcium": 109.3968888888889,
+          "phosphorus": 2518.8844444444444,
+          "magnesium": 302.3066666666667,
+          "sodium": 530.6222222222223,
+          "potassium": 3679.793333333333,
+          "chloride": 896.8,
+          "iron": 8.972646464646465,
+          "zinc": 8.083044444444443,
+          "copper": 0.9612000000000002,
+          "manganese": 0.282608,
+          "iodine": 31.824,
+          "selenium": 27.733714285714285,
+          "taurine": 2723.5872000000004,
+          "vitaminA": 14906.886543434344,
+          "vitaminD": 374.6044444444444,
+          "vitaminE": 9.424401111111113,
+          "vitaminK": 26.893600000000003,
+          "vitaminB1": 1.2005822222222224,
+          "vitaminB2": 2.52634,
+          "vitaminB3": 119.11368888888889,
+          "vitaminB5": 12.6432,
+          "vitaminB6": 7.240684444444445,
+          "vitaminB7": 121.06666666666666,
+          "vitaminB9": 652.5497777777779,
+          "vitaminB12": 16.8028,
+          "vitaminC": 9.724444444444446,
+          "linoleicAcid": 3.131049856,
+          "arachidonicAcid": 313.4
+        },
+        "references": {
+          "calcium": 3200.0,
+          "phosphorus": 2800.0,
+          "magnesium": 480.0,
+          "sodium": 2400.0,
+          "potassium": 3200.0,
+          "chloride": 4800.0,
+          "iron": 60.0,
+          "zinc": 40.0,
+          "copper": 4.0,
+          "manganese": 4.0,
+          "iodine": 600.0,
+          "selenium": 80.0,
+          "taurine": 2400.0,
+          "vitaminA": 20000.0,
+          "vitaminD": 300.0,
+          "vitaminE": 120.0,
+          "vitaminK": 160.0,
+          "vitaminB1": 4.0,
+          "vitaminB2": 2.0,
+          "vitaminB3": 32.0,
+          "vitaminB5": 8.0,
+          "vitaminB6": 3.2,
+          "vitaminB7": 120.0,
+          "vitaminB9": 800.0,
+          "vitaminB12": 16.0,
+          "vitaminC": 0.0,
+          "linoleicAcid": 10.0,
+          "arachidonicAcid": 120.0
+        }
+      }
+    },
+    {
+      "name": "Mixed ingredient categories",
+      "catWeightKg": 5.5,
+      "items": [
+        {
+          "ingredientId": "meat-107",
+          "quantity": 700
+        },
+        {
+          "ingredientId": "fat-009",
+          "quantity": 50
+        },
+        {
+          "ingredientId": "fish-011",
+          "quantity": 100
+        },
+        {
+          "ingredientId": "vegetable-011",
+          "quantity": 50
+        },
+        {
+          "ingredientId": "water",
+          "quantity": 200
+        }
+      ],
+      "expected": {
+        "meatGrams": 750.0,
+        "knownMixtureGrams": 1100.0,
+        "days": 5.454545454545454,
+        "dailyPortionGrams": 201.66666666666669,
+        "totals": {
+          "energy": 1551.8181818181818,
+          "protein": 161.0609090909091,
+          "fat": 100.355,
+          "water": 826.125,
+          "carbohydrate": 2.895,
+          "fiber": 3.1,
+          "ash": 0.0,
+          "calcium": 70.95454545454545,
+          "phosphorus": 1718.5454545454545,
+          "magnesium": 165.5,
+          "sodium": 407.9090909090909,
+          "potassium": 2562.9545454545455,
+          "chloride": 482.0,
+          "iron": 17.221522727272728,
+          "zinc": 37.925,
+          "copper": 0.669,
+          "manganese": 0.175,
+          "iodine": 39.95,
+          "selenium": 29.4375,
+          "taurine": 382.0,
+          "vitaminA": 1645.9086363636363,
+          "vitaminD": 1008.0,
+          "vitaminE": 11.888854545454546,
+          "vitaminK": 96.48666666666666,
+          "vitaminB1": 0.8540909090909091,
+          "vitaminB2": 1.5396363636363637,
+          "vitaminB3": 42.9,
+          "vitaminB5": 5.55,
+          "vitaminB6": 2.2285000000000004,
+          "vitaminB7": 27.2,
+          "vitaminB9": 30.61111111111111,
+          "vitaminB12": 39.45,
+          "vitaminC": 2.7181818181818183,
+          "linoleicAcid": 2.7732222222222225,
+          "arachidonicAcid": 538.0
+        },
+        "references": {
+          "calcium": 2400.0,
+          "phosphorus": 2100.0,
+          "magnesium": 360.0,
+          "sodium": 1800.0,
+          "potassium": 2400.0,
+          "chloride": 3600.0,
+          "iron": 45.0,
+          "zinc": 30.0,
+          "copper": 3.0,
+          "manganese": 3.0,
+          "iodine": 450.0,
+          "selenium": 60.0,
+          "taurine": 1800.0,
+          "vitaminA": 15000.0,
+          "vitaminD": 225.0,
+          "vitaminE": 90.0,
+          "vitaminK": 120.0,
+          "vitaminB1": 3.0,
+          "vitaminB2": 1.5,
+          "vitaminB3": 24.0,
+          "vitaminB5": 6.0,
+          "vitaminB6": 2.4,
+          "vitaminB7": 90.0,
+          "vitaminB9": 600.0,
+          "vitaminB12": 12.0,
+          "vitaminC": 0.0,
+          "linoleicAcid": 7.5,
+          "arachidonicAcid": 90.0
+        }
+      }
+    },
+    {
+      "name": "Heart, rabbit, fat and eggshell",
+      "catWeightKg": 3.2,
+      "items": [
+        {
+          "ingredientId": "meat-153",
+          "quantity": 100
+        },
+        {
+          "ingredientId": "meat-068",
+          "quantity": 350
+        },
+        {
+          "ingredientId": "fat-016",
+          "quantity": 25
+        },
+        {
+          "ingredientId": "supplement-018",
+          "quantity": 5
+        },
+        {
+          "ingredientId": "water",
+          "quantity": 100
+        }
+      ],
+      "expected": {
+        "meatGrams": 475.0,
+        "knownMixtureGrams": 580.0,
+        "days": 5.9375,
+        "dailyPortionGrams": 97.6842105263158,
+        "totals": {
+          "energy": 873.1475,
+          "protein": 84.0,
+          "fat": 59.235,
+          "water": 426.3,
+          "carbohydrate": 0.35,
+          "fiber": 0.0,
+          "ash": 0.0,
+          "calcium": 2006.0,
+          "phosphorus": 964.0,
+          "magnesium": 104.5,
+          "sodium": 245.0,
+          "potassium": 1374.5,
+          "chloride": 278.5,
+          "iron": 9.345,
+          "zinc": 9.7755,
+          "copper": 0.8865,
+          "manganese": 0.1805,
+          "iodine": 7.1,
+          "selenium": 0.05,
+          "taurine": 0.0,
+          "vitaminA": 64.935,
+          "vitaminD": 0.0,
+          "vitaminE": 4.58575,
+          "vitaminK": 0.0,
+          "vitaminB1": 0.753,
+          "vitaminB2": 1.215,
+          "vitaminB3": 32.06,
+          "vitaminB5": 5.36,
+          "vitaminB6": 1.347,
+          "vitaminB7": 5.5,
+          "vitaminB9": 67.0,
+          "vitaminB12": 40.65,
+          "vitaminC": 3.0,
+          "linoleicAcid": 1.1345,
+          "arachidonicAcid": 776.0
+        },
+        "references": {
+          "calcium": 1520.0,
+          "phosphorus": 1330.0,
+          "magnesium": 228.0,
+          "sodium": 1140.0,
+          "potassium": 1520.0,
+          "chloride": 2280.0,
+          "iron": 28.5,
+          "zinc": 19.0,
+          "copper": 1.9000000000000001,
+          "manganese": 1.9000000000000001,
+          "iodine": 285.0,
+          "selenium": 38.0,
+          "taurine": 1140.0,
+          "vitaminA": 9500.0,
+          "vitaminD": 142.5,
+          "vitaminE": 57.0,
+          "vitaminK": 76.0,
+          "vitaminB1": 1.9000000000000001,
+          "vitaminB2": 0.9500000000000001,
+          "vitaminB3": 15.200000000000001,
+          "vitaminB5": 3.8000000000000003,
+          "vitaminB6": 1.52,
+          "vitaminB7": 57.0,
+          "vitaminB9": 380.0,
+          "vitaminB12": 7.6000000000000005,
+          "vitaminC": 0.0,
+          "linoleicAcid": 4.75,
+          "arachidonicAcid": 57.0
+        }
+      }
+    }
+  ]
+}

@@ -9,6 +9,7 @@ export function messagesFor(locale: Locale) {
   // English is the runtime fallback; CI separately requires complete Polish catalogs.
   const translated = catalogs[locale];
   return {
+    Barf: { ...en.Barf, ...translated.Barf },
     Cats: { ...en.Cats, ...translated.Cats },
     Account: { ...en.Account, ...translated.Account },
     Common: { ...en.Common, ...translated.Common },
