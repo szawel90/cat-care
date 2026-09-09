@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures';
+import { readFile } from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
 
 const origin = 'http://127.0.0.1:3330';
@@ -64,7 +65,7 @@ test('creates, versions, copies and archives an owner recipe in both locales', a
   const id = recipes[0].id;
   expect(recipes[0].revisions[0].snapshot.result.days).toBe(10);
   await page.reload();
-  await page.getByLabel('Saved recipes', { exact: true }).selectOption(id);
+  await page.getByRole('combobox', { name: 'Saved recipes', exact: true }).selectOption(id);
   await expect(page.getByLabel('Recipe name', { exact: true })).toHaveValue(
     'Synthetic chicken recipe',
   );
@@ -79,7 +80,9 @@ test('creates, versions, copies and archives an owner recipe in both locales', a
       : route.continue(),
   );
   await page.getByRole('button', { name: 'Save recipe', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('Your unsaved changes are still here');
+  await expect(page.getByRole('main').getByRole('alert')).toContainText(
+    'Your unsaved changes are still here',
+  );
   await expect(page.getByLabel('Cat weight (kg)')).toHaveValue('5');
   await page.unroute('**/api/account/barf/recipes/' + id);
   await page.getByRole('button', { name: 'Save recipe', exact: true }).click();
@@ -95,17 +98,33 @@ test('creates, versions, copies and archives an owner recipe in both locales', a
   await expect(page.getByRole('status')).toContainText('Recipe saved');
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Shopping list', exact: true }).click();
-  expect((await download).suggestedFilename()).toBe('cat-care-shopping-list.txt');
+  const list = await download;
+  expect(list.suggestedFilename()).toBe('cat-care-shopping-list.txt');
+  const listText = await readFile((await list.path())!, 'utf8');
+  expect(listText).toContain('Water: 300 g');
+  expect(listText).toContain('Synthetic chicken recipe');
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.barf-print-only')).toBeVisible();
+  await expect(page.locator('.barf-print-only')).toContainText('Luna');
+  await expect(page.locator('.barf-print-only')).toContainText('300 g');
+  await expect(page.locator('.barf-editor')).toBeHidden();
+  await page.emulateMedia({ media: 'screen' });
   await page.getByRole('button', { name: 'Archive', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Recipe archived');
   await expect(page.getByLabel('Recipe name', { exact: true })).toBeDisabled();
-  await page.getByLabel('Saved recipes', { exact: true }).selectOption(id);
+  await page.getByRole('combobox', { name: 'Saved recipes', exact: true }).selectOption(id);
   await page
     .locator('summary')
     .filter({ hasText: /^Nutrient details$/ })
     .click();
   for (const theme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: theme as 'light' | 'dark' });
+    await expect(page.locator('html')).toHaveCSS('color-scheme', theme);
+    await page.evaluate(async () => {
+      await Promise.all(
+        document.getAnimations().map((animation) => animation.finished.catch(() => {})),
+      );
+    });
     expect(
       (
         await new AxeBuilder({ page })
@@ -135,10 +154,17 @@ test('creates, versions, copies and archives an owner recipe in both locales', a
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang', 'pl');
   await expect(page.getByRole('heading', { name: 'Kalkulator BARF', exact: true })).toBeVisible();
-  await page.getByLabel('Zapisane receptury', { exact: true }).selectOption(id);
+  await page.getByRole('combobox', { name: 'Zapisane receptury', exact: true }).selectOption(id);
   await expect(page.getByLabel('Nazwa receptury', { exact: true })).toHaveValue(
     'Synthetic chicken recipe',
   );
+  await expect(page.locator('.barf-editor button[type="submit"]')).toBeEnabled();
+  await expect(page.locator('.barf-editor button[type="submit"]')).toHaveCSS('opacity', '1');
+  await page.evaluate(async () => {
+    await Promise.all(
+      document.getAnimations().map((animation) => animation.finished.catch(() => {})),
+    );
+  });
   expect(
     (
       await new AxeBuilder({ page })
