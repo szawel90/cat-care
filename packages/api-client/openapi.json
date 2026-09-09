@@ -1532,6 +1532,47 @@
         },
         "required": ["ingredientId", "quantity"]
       },
+      "BarfStockItemDto": {
+        "type": "object",
+        "properties": {
+          "ingredientId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 0.001,
+            "maximum": 100000
+          },
+          "useAll": {
+            "type": "boolean"
+          }
+        },
+        "required": ["ingredientId", "quantity", "useAll"]
+      },
+      "BarfPlanContextDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["inventory", "supplements"]
+          },
+          "version": {
+            "type": "string"
+          },
+          "meatGrams": {
+            "type": "number",
+            "minimum": 0.001,
+            "maximum": 100000
+          },
+          "inventory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BarfStockItemDto"
+            }
+          }
+        },
+        "required": ["mode", "version", "meatGrams", "inventory"]
+      },
       "BarfInputDto": {
         "type": "object",
         "properties": {
@@ -1557,6 +1598,9 @@
             "items": {
               "$ref": "#/components/schemas/BarfItemDto"
             }
+          },
+          "planning": {
+            "$ref": "#/components/schemas/BarfPlanContextDto"
           }
         },
         "required": ["title", "catName", "catWeightKg", "catalogVersion", "engineVersion", "items"]

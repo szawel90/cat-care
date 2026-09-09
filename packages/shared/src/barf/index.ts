@@ -1,6 +1,13 @@
 import data from './catalog.json';
+import {
+  assessBarfPlan,
+  validateBarfPlanContext,
+  type BarfPlanContext,
+  type BarfPlanAssessment,
+} from './planner';
+export * from './planner';
 
-export const BARF_ENGINE_VERSION = 'barf-1.9c-corrected-v1';
+export const BARF_ENGINE_VERSION = 'barf-1.9c-corrected-v2';
 export type BarfNutrientId = keyof (typeof data.ingredients)[number]['nutrients'];
 export interface BarfIngredient {
   id: string;
@@ -32,6 +39,7 @@ export interface BarfInput {
   catalogVersion: string;
   engineVersion: string;
   items: BarfItem[];
+  planning?: BarfPlanContext;
 }
 export interface BarfNutrientResult {
   knownTotal: number;
@@ -55,11 +63,14 @@ export interface BarfResult {
   nutrients: Record<BarfNutrientId, BarfNutrientResult>;
   missingNutrientCount: number;
   validation: 'legacy-unverified';
+  /** Absent on historical v1 snapshots; raw catalog values remain null. */
+  taurineZeroAssumption?: { value: 0; ingredientIds: string[] };
 }
 export interface BarfSnapshot {
   input: BarfInput;
   result: BarfResult;
   ingredients: BarfIngredient[];
+  planning?: BarfPlanAssessment;
 }
 export interface BarfRecipeRevision {
   version: number;
@@ -102,9 +113,10 @@ export function validateBarfInput(input: BarfInput, catalog: BarfCatalog = data)
     if (!Number.isFinite(item.quantity) || item.quantity < 0.001 || item.quantity > 100_000)
       throw new Error('BARF_INVALID_QUANTITY');
   }
+  validateBarfPlanContext(input, catalog);
 }
 
-/** Reproduce the workbook's meat-based model. Missing values stay explicitly unknown. */
+/** Preserve source gaps; v2 explicitly assumes zero only for missing taurine. */
 export function calculateBarf(input: BarfInput, catalog: BarfCatalog = data): BarfResult {
   validateBarfInput(input, catalog);
   const ingredients = new Map(catalog.ingredients.map((ingredient) => [ingredient.id, ingredient]));
@@ -188,6 +200,7 @@ export function calculateBarf(input: BarfInput, catalog: BarfCatalog = data): Ba
     missingNutrientCount: Object.values(nutrients).filter((n) => n.missingIngredientIds.length > 0)
       .length,
     validation: 'legacy-unverified',
+    taurineZeroAssumption: { value: 0, ingredientIds: [...nutrients.taurine.missingIngredientIds] },
   };
 }
 
@@ -195,6 +208,7 @@ export interface BarfSuggestion {
   quantity: number | null;
   reason: string;
   missingIngredientIds: string[];
+  assumedZeroIngredientIds: string[];
 }
 
 /** Suggest a replacement quantity, never an extra dose on top of an existing line. */
@@ -207,6 +221,7 @@ export function suggestBarfQuantity(
   if (!ingredient) throw new Error('BARF_UNKNOWN_INGREDIENT');
   const base = {
     ...input,
+    planning: undefined,
     items: input.items.filter((item) => item.ingredientId !== ingredientId),
   };
   const result = calculateBarf(base, catalog);
@@ -215,6 +230,7 @@ export function suggestBarfQuantity(
     quantity: null,
     reason: rule ?? 'manual',
     missingIngredientIds: [],
+    assumedZeroIngredientIds: [],
   };
   if (!rule || result.meatGrams <= 0) return answer;
   const perUnit = (id: BarfNutrientId) => {
@@ -223,7 +239,9 @@ export function suggestBarfQuantity(
   };
   // Keep the source's known subtotal available, but disclose every omitted input.
   const known = (id: BarfNutrientId) => {
-    answer.missingIngredientIds.push(...result.nutrients[id].missingIngredientIds);
+    if (id === 'taurine')
+      answer.assumedZeroIngredientIds.push(...result.nutrients[id].missingIngredientIds);
+    else answer.missingIngredientIds.push(...result.nutrients[id].missingIngredientIds);
     return result.nutrients[id].knownTotal;
   };
   let quantity: number | null = null;
@@ -259,7 +277,7 @@ export function suggestBarfQuantity(
       quantity = (reference - known(nutrient)) / concentration;
   }
   answer.missingIngredientIds = [...new Set(answer.missingIngredientIds)];
-  // Missing source data cannot silently become a dosing assumption.
+  // Only the explicit taurine policy permits a missing contribution in a suggestion.
   if (
     quantity !== null &&
     Number.isFinite(quantity) &&
@@ -273,10 +291,13 @@ export function suggestBarfQuantity(
 
 export function snapshotBarf(input: BarfInput): BarfSnapshot {
   const result = calculateBarf(input);
-  const ids = new Set(input.items.map((item) => item.ingredientId));
+  const ids = new Set(
+    [...input.items, ...(input.planning?.inventory ?? [])].map((item) => item.ingredientId),
+  );
   return {
     input: structuredClone(input),
     result,
     ingredients: structuredClone(data.ingredients.filter((item) => ids.has(item.id))),
+    ...(input.planning ? { planning: assessBarfPlan(input) } : {}),
   };
 }

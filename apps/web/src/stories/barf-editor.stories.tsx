@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, fn } from 'storybook/test';
-import { emptyBarfInput, type BarfInput } from '@cat-care/shared';
+import { expect, fn, waitFor } from 'storybook/test';
+import { emptyBarfInput, snapshotBarf, type BarfSnapshot, type BarfInput } from '@cat-care/shared';
 import { BarfEditor } from '../components/barf-editor';
 import { storyMessages } from './messages';
 
@@ -10,11 +10,13 @@ function Workbench({
   busy = false,
   readOnly = false,
   onSave,
+  snapshot,
 }: {
   initial: BarfInput;
   busy?: boolean;
   readOnly?: boolean;
   onSave: () => void;
+  snapshot?: BarfSnapshot;
 }) {
   const [input, setInput] = useState(initial);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -22,6 +24,7 @@ function Workbench({
     <div style={{ maxWidth: 1100, margin: 'auto' }}>
       <BarfEditor
         input={input}
+        snapshot={snapshot}
         onChange={setInput}
         favorites={favorites}
         onFavorite={(id) =>
@@ -107,5 +110,100 @@ export const History: Story = {
     const t = storyMessages(globals).Barf;
     await expect(canvas.getByLabelText(t.recipeName)).toBeDisabled();
     await expect(canvas.queryByRole('button', { name: t.saveRecipe })).not.toBeInTheDocument();
+  },
+};
+
+export const InventoryProposal: Story = {
+  args: { initial: { ...filled, items: [{ ingredientId: 'meat-041', quantity: 1000 }] } },
+  play: async ({ canvas, userEvent, globals }) => {
+    const t = storyMessages(globals).Barf;
+    await userEvent.selectOptions(canvas.getByLabelText(t.planMode), 'inventory');
+    await expect(canvas.getByRole('button', { name: t.saveRecipe })).toBeDisabled();
+    await expect(canvas.getByText(t.planBalanceAfter)).toBeVisible();
+    await expect(canvas.getByRole('button', { name: t.print })).toBeDisabled();
+    await expect(canvas.getByRole('button', { name: t.shoppingList })).toBeDisabled();
+    await userEvent.click(canvas.getByRole('button', { name: t.planFind }));
+    await waitFor(() => expect(canvas.getByRole('button', { name: t.planApply })).toBeVisible(), {
+      timeout: 15000,
+    });
+    await expect(canvas.getByText(t.planIncomplete)).toBeVisible();
+    await userEvent.click(canvas.getByRole('button', { name: t.planApply }));
+    await expect(canvas.getByLabelText(t.planMode)).toHaveValue('recipe');
+    await expect(canvas.getByRole('button', { name: t.saveRecipe })).toBeEnabled();
+  },
+};
+export const InventoryPolishDark: Story = {
+  ...InventoryProposal,
+  globals: { locale: 'pl', theme: 'dark' },
+};
+export const BaseFoodsProposal: Story = {
+  ...InventoryProposal,
+  play: async ({ canvas, userEvent, globals }) => {
+    const t = storyMessages(globals).Barf;
+    await userEvent.selectOptions(canvas.getByLabelText(t.planMode), 'supplements');
+    await expect(canvas.getByText(t.planFoodsHint)).toBeVisible();
+    await expect(canvas.queryByLabelText(t.planBatch)).not.toBeInTheDocument();
+    await userEvent.click(canvas.getByRole('button', { name: t.planFind }));
+    await waitFor(() => expect(canvas.getByRole('button', { name: t.planApply })).toBeVisible(), {
+      timeout: 15000,
+    });
+    await userEvent.click(canvas.getByRole('button', { name: t.planApply }));
+    await expect(canvas.getByRole('button', { name: t.saveRecipe })).toBeEnabled();
+  },
+};
+export const StockConflictAndRetry: Story = {
+  ...InventoryProposal,
+  play: async ({ canvas, userEvent, globals }) => {
+    const t = storyMessages(globals).Barf;
+    await userEvent.selectOptions(canvas.getByLabelText(t.planMode), 'inventory');
+    const batch = canvas.getByLabelText(t.planBatch);
+    await userEvent.clear(batch);
+    await userEvent.type(batch, '500');
+    await userEvent.click(canvas.getByRole('button', { name: t.planFind }));
+    await waitFor(() => expect(canvas.getByText(t.planNoProposal)).toBeVisible(), {
+      timeout: 15000,
+    });
+    await userEvent.click(canvas.getByRole('checkbox'));
+    await expect(canvas.queryByText(t.planNoProposal)).not.toBeInTheDocument();
+    await userEvent.click(canvas.getByRole('button', { name: t.planFind }));
+    await waitFor(() => expect(canvas.getByRole('button', { name: t.planApply })).toBeVisible(), {
+      timeout: 15000,
+    });
+  },
+};
+export const FoodModePreservesEnteredSupplements: Story = {
+  args: {
+    initial: {
+      ...filled,
+      items: [...filled.items, { ingredientId: 'supplement-016', quantity: 2 }],
+    },
+  },
+  play: async ({ canvas, userEvent, globals }) => {
+    const t = storyMessages(globals).Barf;
+    await userEvent.selectOptions(canvas.getByLabelText(t.planMode), 'supplements');
+    await expect(canvas.getByText(t.planRemoveSupplements)).toBeVisible();
+    await expect(canvas.getByRole('button', { name: t.planFind })).toBeDisabled();
+    await userEvent.selectOptions(canvas.getByLabelText(t.planMode), 'recipe');
+    await expect(canvas.getByRole('button', { name: t.saveRecipe })).toBeEnabled();
+  },
+};
+
+const historicalTaurine = snapshotBarf({
+  ...filled,
+  items: [{ ingredientId: 'meat-041', quantity: 1000 }],
+});
+historicalTaurine.input.engineVersion = 'barf-1.9c-corrected-v1';
+delete historicalTaurine.result.taurineZeroAssumption;
+export const LegacyMissingTaurine: Story = {
+  args: { initial: historicalTaurine.input, snapshot: historicalTaurine, readOnly: true },
+  play: async ({ canvas, globals }) => {
+    const t = storyMessages(globals).Barf;
+    await expect(canvas.queryByText(t.taurineAssumedZero)).not.toBeInTheDocument();
+    await expect(
+      canvas.queryByText(/Calculation assumption:|Założenie obliczeniowe:/),
+    ).not.toBeInTheDocument();
+    await expect(
+      canvas.getByText('barf-1.9c-data-v1 · barf-1.9c-corrected-v1', { selector: '.barf-hint' }),
+    ).toBeInTheDocument();
   },
 };

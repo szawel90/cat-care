@@ -5,6 +5,9 @@ import { useLocale, useTranslations } from 'next-intl';
 import { CircleHelp, Download, Plus, Printer, Star, Trash2 } from 'lucide-react';
 import {
   barfCatalog,
+  assessBarfPlan,
+  isBarfBaseFood,
+  type BarfPlannerMode,
   barfNutrients,
   calculateBarf,
   suggestBarfQuantity,
@@ -14,6 +17,7 @@ import {
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { BarfPlanPanel, BarfPlanSummary } from './barf-plan-panel';
 
 export interface BarfEditorProps {
   input: BarfInput;
@@ -43,6 +47,8 @@ export function BarfEditor({
     [locale],
   );
   const number = (value: number | null) => (value === null ? '—' : formatter.format(value));
+  const [mode, setMode] = useState<'recipe' | BarfPlannerMode>('recipe');
+  const inventoryMode = mode !== 'recipe' && !readOnly;
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -53,6 +59,7 @@ export function BarfEditor({
   const selected = barfCatalog.ingredients.find((item) => item.id === selectedId);
   const found = barfCatalog.ingredients.filter(
     (item) =>
+      (mode !== 'supplements' || isBarfBaseFood(item)) &&
       (category === 'all' || category === item.category) &&
       (!favoritesOnly || favorites.includes(item.id)) &&
       `${item.name.en} ${item.name.pl}`
@@ -61,21 +68,30 @@ export function BarfEditor({
   );
   let result: BarfSnapshot['result'] | null = null;
   let suggestion: ReturnType<typeof suggestBarfQuantity> | null = null;
+  let planning: BarfSnapshot['planning'];
   try {
     result = snapshot?.result ?? calculateBarf(input);
+    planning = snapshot?.planning ?? (input.planning ? assessBarfPlan(input) : undefined);
     if (selected?.suggestion && !readOnly) suggestion = suggestBarfQuantity(input, selected.id);
   } catch {
     // An incomplete number field is a draft, not a valid calculation.
   }
   const validQuantity =
     Number.isFinite(Number(quantity)) && Number(quantity) >= 0.001 && Number(quantity) <= 100_000;
+  const assumedIds = result?.taurineZeroAssumption?.ingredientIds ?? [];
+  const assumptionText = assumedIds.length
+    ? t('taurineAssumption', {
+        names: assumedIds.map((id) => ingredientById.get(id)?.name[locale] ?? id).join(', '),
+      })
+    : null;
   const blocked = busy || readOnly;
   const setField = <K extends keyof BarfInput>(key: K, value: BarfInput[K]) =>
-    onChange({ ...input, [key]: value });
+    onChange({ ...input, [key]: value, ...(key === 'items' ? { planning: undefined } : {}) });
   const unit = (name: string) => t(`unit_${name}` as 'unit_g');
 
   function add() {
-    if (!selected || !validQuantity) return;
+    if (!selected || !validQuantity || (mode === 'supplements' && !isBarfBaseFood(selected)))
+      return;
     const item = { ingredientId: selected.id, quantity: Number(quantity) };
     setField(
       'items',
@@ -88,10 +104,20 @@ export function BarfEditor({
     const text = [
       input.title,
       t('draftNotice'),
+      ...(assumptionText ? [assumptionText] : []),
+      ...(planning
+        ? [
+            t(planning.targetsMet ? 'planSourceTargetsMet' : 'planIncomplete'),
+            t('planProducts', { count: planning.purchases.length }),
+          ]
+        : []),
       '',
       ...input.items.map((item) => {
         const ingredient = ingredientById.get(item.ingredientId)!;
-        return `${ingredient.name[locale]}: ${number(item.quantity)} ${unit(ingredient.unit)}`;
+        const ownership = planning
+          ? ` — ${t(planning.purchases.some((p) => p.ingredientId === item.ingredientId) ? 'planBuy' : 'planOwned')}`
+          : '';
+        return `${ingredient.name[locale]}: ${number(item.quantity)} ${unit(ingredient.unit)}${ownership}`;
       }),
       '',
       t('sourceModel'),
@@ -110,10 +136,34 @@ export function BarfEditor({
         className="barf-editor"
         onSubmit={(event) => {
           event.preventDefault();
-          if (result && !blocked) onSave();
+          if (result && !blocked && !inventoryMode) onSave();
         }}
       >
         <div className="barf-ingredients-column">
+          {!readOnly && (
+            <div className="barf-panel barf-no-print">
+              <Label htmlFor="barf-mode">{t('planMode')}</Label>
+              <select
+                id="barf-mode"
+                value={mode}
+                disabled={busy}
+                onChange={(event) => {
+                  setMode(event.target.value as 'recipe' | BarfPlannerMode);
+                  setSelectedId('');
+                  setCategory('all');
+                }}
+              >
+                <option value="recipe">{t('planManualMode')}</option>
+                <option value="inventory">{t('planInventoryMode')}</option>
+                <option value="supplements">{t('planSupplementsMode')}</option>
+              </select>
+            </div>
+          )}
+          {inventoryMode && (
+            <p className="barf-calculation-note">
+              {t(mode === 'supplements' ? 'planFoodsHint' : 'planStockHint')}
+            </p>
+          )}
           <section className="barf-panel" aria-labelledby="barf-details-title">
             <h2 id="barf-details-title">{t('recipeDetails')}</h2>
             <fieldset disabled={blocked} className="barf-fields">
@@ -272,8 +322,17 @@ export function BarfEditor({
                           : t('add')}
                       </Button>
                     </div>
-                    {suggestion && (
+                    {suggestion && !inventoryMode && (
                       <div className="barf-calculation-note">
+                        {suggestion.assumedZeroIngredientIds.length > 0 && (
+                          <p>
+                            {t('taurineAssumption', {
+                              names: suggestion.assumedZeroIngredientIds
+                                .map((id) => ingredientById.get(id)?.name[locale] ?? id)
+                                .join(', '),
+                            })}
+                          </p>
+                        )}
                         <p>
                           {t('suggestionReason', {
                             reason: t(`rule_${suggestion.reason}` as 'rule_taurine'),
@@ -390,6 +449,18 @@ export function BarfEditor({
               </ul>
             )}
           </section>
+          {inventoryMode && (
+            <BarfPlanPanel
+              key={mode}
+              input={input}
+              mode={mode as BarfPlannerMode}
+              disabled={blocked}
+              onApply={(proposed) => {
+                onChange(proposed);
+                setMode('recipe');
+              }}
+            />
+          )}
         </div>
 
         <aside className="barf-summary-column" aria-labelledby="barf-balance-title">
@@ -399,7 +470,9 @@ export function BarfEditor({
               <CircleHelp aria-hidden="true" />
               <p>{t('draftNotice')}</p>
             </div>
-            {!result ? (
+            {inventoryMode ? (
+              <p>{t('planBalanceAfter')}</p>
+            ) : !result ? (
               <p role="status">{t('invalidDraft')}</p>
             ) : (
               <>
@@ -423,6 +496,14 @@ export function BarfEditor({
                     <dd>{result.missingNutrientCount}</dd>
                   </div>
                 </dl>
+                {assumptionText && <p className="barf-calculation-note">{assumptionText}</p>}
+                {!inventoryMode && planning && (
+                  <BarfPlanSummary
+                    input={input}
+                    assessment={planning}
+                    ingredients={sourceIngredients}
+                  />
+                )}
                 {result.meatGrams === 0 && <p>{t('needMeat')}</p>}
                 {result.massIncomplete && <p className="barf-hint">{t('massIncomplete')}</p>}
                 {result.missingNutrientCount > 0 && (
@@ -472,6 +553,9 @@ export function BarfEditor({
                           <tr key={nutrient.id}>
                             <th scope="row">
                               {nutrient.name[locale]} <small>({nutrient.unit})</small>
+                              {nutrient.id === 'taurine' && assumedIds.length > 0 && (
+                                <small>{t('taurineAssumedZero')}</small>
+                              )}
                               {value.missingIngredientIds.length > 0 && (
                                 <details>
                                   <summary>
@@ -510,7 +594,9 @@ export function BarfEditor({
               {!readOnly && (
                 <Button
                   type="submit"
-                  disabled={busy || !result || result.meatGrams <= 0 || !input.title.trim()}
+                  disabled={
+                    inventoryMode || busy || !result || result.meatGrams <= 0 || !input.title.trim()
+                  }
                 >
                   {busy ? t('saving') : t('saveRecipe')}
                 </Button>
@@ -518,7 +604,7 @@ export function BarfEditor({
               <Button
                 type="button"
                 variant="outline"
-                disabled={!result || !input.items.length}
+                disabled={inventoryMode || !result || !input.items.length}
                 onClick={() => window.print()}
               >
                 <Printer aria-hidden="true" />
@@ -527,7 +613,7 @@ export function BarfEditor({
               <Button
                 type="button"
                 variant="outline"
-                disabled={!input.items.length}
+                disabled={inventoryMode || !input.items.length}
                 onClick={shoppingList}
               >
                 <Download aria-hidden="true" />
@@ -537,18 +623,31 @@ export function BarfEditor({
           </section>
         </aside>
       </form>
-      <section className="barf-print-only">
+      <section className={inventoryMode ? 'barf-no-print hidden' : 'barf-print-only'}>
         <h1>{input.title}</h1>
         <p>
           {input.catName} · {number(input.catWeightKg)} kg
         </p>
         <p>{t('draftNotice')}</p>
+        {assumptionText && <p>{assumptionText}</p>}
+        {planning && <p>{t(planning.targetsMet ? 'planSourceTargetsMet' : 'planIncomplete')}</p>}
         <ul>
           {input.items.map((item) => {
             const ingredient = ingredientById.get(item.ingredientId)!;
             return (
               <li key={item.ingredientId}>
                 {ingredient.name[locale]} — {number(item.quantity)} {unit(ingredient.unit)}
+                {planning && (
+                  <>
+                    {' '}
+                    —{' '}
+                    {t(
+                      planning.purchases.some((p) => p.ingredientId === item.ingredientId)
+                        ? 'planBuy'
+                        : 'planOwned',
+                    )}
+                  </>
+                )}
               </li>
             );
           })}

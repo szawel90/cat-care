@@ -105,9 +105,14 @@ describe('BARF corrected 1.9c arithmetic', () => {
       missingIngredientIds: ['meat'],
     });
     expect(result.calciumPhosphorus).toBeNull();
+    expect(result.taurineZeroAssumption).toEqual({ value: 0, ingredientIds: ['meat'] });
+    expect(meat.nutrients.taurine).toBeNull();
+    const calcium = ingredient('calcium', { calcium: 40_000, phosphorus: 0 }, 'calciumPhosphorus');
+    expect(suggestBarfQuantity(input, 'calcium', catalog(meat, calcium)).quantity).toBeNull();
     expect(suggestBarfQuantity(input, 'taurine', catalog(meat, taurine))).toMatchObject({
-      quantity: null,
-      missingIngredientIds: ['meat'],
+      quantity: 2.4,
+      missingIngredientIds: [],
+      assumedZeroIngredientIds: ['meat'],
     });
   });
 
@@ -192,6 +197,33 @@ describe('BARF corrected 1.9c arithmetic', () => {
       'BARF_VERSION_MISMATCH',
     );
   });
+  it('keeps known taurine separate from the zero assumption and preserves raw snapshot gaps', () => {
+    const input = meal([
+      { ingredientId: 'meat-041', quantity: 1000 },
+      { ingredientId: 'meat-076', quantity: 100 },
+    ]);
+    const snapshot = snapshotBarf(input);
+    expect(snapshot.result.nutrients.taurine.knownTotal).toBe(34);
+    expect(snapshot.result.taurineZeroAssumption).toEqual({
+      value: 0,
+      ingredientIds: ['meat-041'],
+    });
+    expect(snapshot.ingredients.find((i) => i.id === 'meat-041')?.nutrients.taurine).toBeNull();
+    expect(
+      snapshotBarf(meal([{ ingredientId: 'meat-076', quantity: 100 }])).result.taurineZeroAssumption
+        ?.ingredientIds,
+    ).toEqual([]);
+    const empty = ingredient('empty', { taurine: null }, 'taurine');
+    const base = ingredient('base', { taurine: null }, null, true);
+    expect(
+      suggestBarfQuantity(
+        meal([{ ingredientId: 'base', quantity: 1000 }]),
+        'empty',
+        catalog(base, empty),
+      ).quantity,
+    ).toBeNull();
+  });
+
   it('captures versioned inputs and used data independently of later edits', () => {
     const input = meal([{ ingredientId: 'meat-076', quantity: 1000 }]);
     const snapshot = snapshotBarf(input);

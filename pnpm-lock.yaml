@@ -266,7 +266,11 @@ importers:
 
   packages/config: {}
 
-  packages/shared: {}
+  packages/shared:
+    dependencies:
+      yalps:
+        specifier: 0.6.4
+        version: 0.6.4
 
 packages:
 
@@ -4841,6 +4845,9 @@ packages:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
 
+  heap@0.2.7:
+    resolution: {integrity: sha512-2bsegYkkHO+h/9MGbn6KWcE45cHZgPANo5LXF7EvWdT0yT2EguSVO1nDgU5c8+ZOPwp2vMNa7YFsJhVcDR9Sdg==}
+
   hermes-estree@0.25.1:
     resolution: {integrity: sha512-0wUoCcLp+5Ev5pDW2OriHC2MJCbwLwuRx+gAqMTOkGKJJiBCLjtrvy4PWUGn6MIVefecRpzoOZ/UV6iGdOr+Cw==}
 
@@ -7023,6 +7030,9 @@ packages:
 
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
+
+  yalps@0.6.4:
+    resolution: {integrity: sha512-PfOgB86E32G89K4IPiKZDCd9is2tQCSV89/t5HWdbAzbVPAL8vJ8es6Z1Ox6oN8d1k2mM/dqIQJDoaooFxIc+w==}
 
   yaml-ast-parser@0.0.43:
     resolution: {integrity: sha512-2PTINUwsRqSd+s8XxKaJWQlUuEMHJQyEuh2edBbW8KNJz0SJPwUSD2zRWqezFEdN7IzAgeuYHFUCF7o8zRdZ0A==}
@@ -11596,6 +11606,8 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
+  heap@0.2.7: {}
+
   hermes-estree@0.25.1: {}
 
   hermes-parser@0.25.1:
@@ -13899,6 +13911,10 @@ snapshots:
   y18n@5.0.8: {}
 
   yallist@3.1.1: {}
+
+  yalps@0.6.4:
+    dependencies:
+      heap: 0.2.7
 
   yaml-ast-parser@0.0.43: {}
 

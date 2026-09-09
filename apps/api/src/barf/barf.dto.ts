@@ -4,8 +4,11 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsBoolean,
+  ValidateIf,
   IsDefined,
   IsInt,
+  IsIn,
   IsNumber,
   IsString,
   Max,
@@ -24,6 +27,26 @@ export class BarfItemDto {
   @Max(100000)
   quantity!: number;
 }
+export class BarfStockItemDto extends BarfItemDto {
+  @ApiProperty() @IsBoolean() useAll!: boolean;
+}
+export class BarfPlanContextDto {
+  @ApiProperty({ enum: ['inventory', 'supplements'] }) @IsIn(['inventory', 'supplements']) mode!:
+    'inventory' | 'supplements';
+  @ApiProperty() @IsString() @MaxLength(80) version!: string;
+  @ApiProperty({ minimum: 0.001, maximum: 100000 })
+  @IsNumber()
+  @Min(0.001)
+  @Max(100000)
+  meatGrams!: number;
+  @ApiProperty({ type: [BarfStockItemDto] })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(200)
+  @ValidateNested({ each: true })
+  @Type(() => BarfStockItemDto)
+  inventory!: BarfStockItemDto[];
+}
 export class BarfInputDto implements BarfInput {
   @ApiProperty() @IsString() @MinLength(1) @MaxLength(100) title!: string;
   @ApiProperty() @IsString() @MaxLength(80) catName!: string;
@@ -37,6 +60,12 @@ export class BarfInputDto implements BarfInput {
   @ValidateNested({ each: true })
   @Type(() => BarfItemDto)
   items!: BarfItemDto[];
+  @ApiPropertyOptional({ type: BarfPlanContextDto })
+  @ValidateIf((_, value) => value !== undefined)
+  @IsDefined()
+  @ValidateNested()
+  @Type(() => BarfPlanContextDto)
+  planning?: BarfPlanContextDto;
 }
 export class SaveBarfRecipeDto {
   @ApiProperty({ type: BarfInputDto })

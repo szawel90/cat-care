@@ -173,6 +173,82 @@ test('creates, versions, copies and archives an owner recipe in both locales', a
     ).violations,
   ).toEqual([]);
   await page.screenshot({ path: info.outputPath('barf-polish-dark.png'), fullPage: true });
+  // Exercise both planners on the real worker and API, after the legacy/manual journey.
+  await page.getByRole('button', { name: 'Nowa receptura', exact: true }).click();
+  await page.getByLabel('Nazwa receptury', { exact: true }).fill('Synthetic inventory plan');
+  await page.getByLabel('Sposób układania receptury').selectOption('inventory');
+  await page.locator('#barf-search').fill('Turkey breast');
+  await page.locator('#barf-ingredient').selectOption('meat-041');
+  await page.locator('#barf-quantity').fill('1000');
+  await page.getByRole('button', { name: 'Dodaj', exact: true }).click();
+  await page.getByRole('button', { name: 'Znajdź propozycję', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Zastosuj propozycję roboczą' })).toBeVisible({
+    timeout: 20000,
+  });
+  await page.getByRole('button', { name: 'Zastosuj propozycję roboczą' }).click();
+  await page.getByRole('button', { name: 'Zapisz recepturę', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('zapisana');
+  const planned = (await (await page.request.get('/api/account/barf/recipes')).json()).find(
+    (r: { revisions: { snapshot: { input: { title: string } } }[] }) =>
+      r.revisions[0].snapshot.input.title === 'Synthetic inventory plan',
+  );
+  expect(planned.revisions[0].snapshot.input.planning.mode).toBe('inventory');
+  expect(planned.revisions[0].snapshot.planning.purchases.length).toBeLessThanOrEqual(3);
+  expect(planned.revisions[0].snapshot.result.taurineZeroAssumption.ingredientIds).toContain(
+    'meat-041',
+  );
+  await page.reload();
+  await page
+    .getByRole('combobox', { name: 'Zapisane receptury', exact: true })
+    .selectOption(planned.id);
+  await expect(page.getByText(/Założenie obliczeniowe: brakującą taurynę/).first()).toBeVisible();
+  const plannerDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Lista zakupów', exact: true }).click();
+  const plannedText = await readFile((await (await plannerDownload).path())!, 'utf8');
+  expect(plannedText).toContain('Do dokupienia');
+  expect(plannedText).toContain('Założenie obliczeniowe');
+  await page.getByRole('button', { name: 'Nowa receptura', exact: true }).click();
+  await page.getByLabel('Nazwa receptury', { exact: true }).fill('Synthetic food base');
+  await page.getByLabel('Sposób układania receptury').selectOption('supplements');
+  await page.locator('#barf-search').fill('Turkey breast');
+  await page.locator('#barf-ingredient').selectOption('meat-041');
+  await page.locator('#barf-quantity').fill('1000');
+  await page.getByRole('button', { name: 'Dodaj', exact: true }).click();
+  await page.getByRole('button', { name: 'Znajdź propozycję', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Zastosuj propozycję roboczą' })).toBeVisible({
+    timeout: 20000,
+  });
+  await page.getByRole('button', { name: 'Zastosuj propozycję roboczą' }).click();
+  await page.getByRole('button', { name: 'Zapisz recepturę', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('zapisana');
+  const foodRecipe = (await (await page.request.get('/api/account/barf/recipes')).json()).find(
+    (r: { revisions: { snapshot: { input: { title: string } } }[] }) =>
+      r.revisions[0].snapshot.input.title === 'Synthetic food base',
+  );
+  expect(foodRecipe.revisions[0].snapshot.input.planning.mode).toBe('supplements');
+  expect(
+    foodRecipe.revisions[0].snapshot.input.items.find(
+      (i: { ingredientId: string }) => i.ingredientId === 'meat-041',
+    ).quantity,
+  ).toBe(1000);
+  await page.setViewportSize({ width: 320, height: 740 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  await page.evaluate(async () => {
+    await Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {})));
+  });
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page.screenshot({
+    path: info.outputPath('barf-planner-polish-mobile.png'),
+    fullPage: true,
+  });
   const guest = await browser.newContext({ baseURL: origin });
   try {
     expect((await guest.request.get('/api/account/barf/recipes/' + id)).status()).toBe(401);

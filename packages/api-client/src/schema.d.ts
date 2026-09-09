@@ -501,6 +501,18 @@ export interface components {
             ingredientId: string;
             quantity: number;
         };
+        BarfStockItemDto: {
+            ingredientId: string;
+            quantity: number;
+            useAll: boolean;
+        };
+        BarfPlanContextDto: {
+            /** @enum {string} */
+            mode: "inventory" | "supplements";
+            version: string;
+            meatGrams: number;
+            inventory: components["schemas"]["BarfStockItemDto"][];
+        };
         BarfInputDto: {
             title: string;
             catName: string;
@@ -508,6 +520,7 @@ export interface components {
             catalogVersion: string;
             engineVersion: string;
             items: components["schemas"]["BarfItemDto"][];
+            planning?: components["schemas"]["BarfPlanContextDto"];
         };
         SaveBarfRecipeDto: {
             input: components["schemas"]["BarfInputDto"];

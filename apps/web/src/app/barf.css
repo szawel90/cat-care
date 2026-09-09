@@ -407,3 +407,48 @@
     color: #000;
   }
 }
+
+.barf-stock-locks,
+.barf-plan-products,
+.barf-plan-checks {
+  list-style: none;
+  padding: 0;
+}
+.barf-stock-locks li {
+  margin-bottom: 10px;
+}
+.barf-stock-locks label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.barf-stock-locks input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  accent-color: var(--accent);
+}
+.barf-plan-result {
+  margin-top: 24px;
+}
+.barf-plan-result h3:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.barf-plan-products li,
+.barf-plan-checks li {
+  display: grid;
+  gap: 4px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.barf-plan-summary h3 {
+  font-size: 16px;
+  margin: 16px 0 8px;
+}
+.barf-purchase {
+  color: var(--accent);
+  font-weight: 650;
+}

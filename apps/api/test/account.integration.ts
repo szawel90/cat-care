@@ -1,4 +1,9 @@
-import { emptyBarfInput } from '@cat-care/shared';
+import {
+  BARF_PLANNER_VERSION,
+  emptyBarfInput,
+  snapshotBarf,
+  type BarfInput,
+} from '@cat-care/shared';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import 'reflect-metadata';
@@ -232,6 +237,80 @@ describe('Account lifecycle and access isolation', () => {
     expect(await prisma.barfRecipe.count({ where: { userId } })).toBe(0);
     expect(await prisma.barfRecipeRevision.count({ where: { recipeId: recipe.id } })).toBe(0);
     expect(await prisma.barfPreferences.count({ where: { userId } })).toBe(0);
+  });
+
+  it('recomputes planner assessments and taurine assumptions while preserving legacy history', async () => {
+    const email = 'barf-planner@example.test';
+    const owner = await register(email);
+    await owner(link(email, 'Verify'));
+    await signIn(email, owner);
+    const userId = (await owner('/v1/account')).json().id;
+    const input: BarfInput = {
+      ...emptyBarfInput(),
+      title: 'Synthetic planned meal',
+      items: [
+        { ingredientId: 'meat-041', quantity: 1000 },
+        { ingredientId: 'supplement-016', quantity: 2.417 },
+      ],
+      planning: {
+        version: BARF_PLANNER_VERSION,
+        mode: 'inventory',
+        meatGrams: 1000,
+        inventory: [{ ingredientId: 'meat-041', quantity: 1000, useAll: true }],
+      },
+    };
+    const path = '/v1/account/barf/recipes';
+    for (const planning of [
+      null,
+      { ...input.planning, mode: 'invalid' },
+      { ...input.planning, targetsMet: true },
+      { ...input.planning, inventory: [{ ingredientId: 'meat-041', quantity: 999, useAll: true }] },
+    ]) {
+      expect((await owner(path, { input: { ...input, planning } })).statusCode).toBe(400);
+    }
+    const created = await owner(path, { input });
+    expect(created.statusCode).toBe(201);
+    const saved = created.json();
+    const snapshot = saved.revisions[0].snapshot;
+    expect(snapshot.result.taurineZeroAssumption).toEqual({
+      value: 0,
+      ingredientIds: ['meat-041'],
+    });
+    expect(snapshot.planning.targetsMet).toBe(false);
+    expect(snapshot.planning.purchases).toEqual([
+      { ingredientId: 'supplement-016', quantity: 2.417 },
+    ]);
+    expect(
+      snapshot.ingredients.find((i: { id: string }) => i.id === 'meat-041').nutrients.taurine,
+    ).toBeNull();
+    const legacyInput = {
+      ...emptyBarfInput(),
+      title: 'Synthetic legacy',
+      items: [{ ingredientId: 'meat-041', quantity: 1000 }],
+    };
+    const legacy = snapshotBarf(legacyInput);
+    legacy.input.engineVersion = 'barf-1.9c-corrected-v1';
+    delete legacy.result.taurineZeroAssumption;
+    const stored = await prisma.barfRecipe.create({
+      data: {
+        userId,
+        revisions: { create: { version: 1, snapshot: JSON.parse(JSON.stringify(legacy)) } },
+      },
+    });
+    expect((await owner(path + '/' + stored.id)).json().revisions[0].snapshot).toEqual(legacy);
+    expect(
+      (await owner(path + '/' + stored.id, { input: legacy.input, expectedVersion: 1 })).statusCode,
+    ).toBe(400);
+    const changed = await owner(path + '/' + stored.id, { input: legacyInput, expectedVersion: 1 });
+    expect(changed.statusCode).toBe(200);
+    expect(changed.json().revisions[1].snapshot).toEqual(legacy);
+    expect(changed.json().revisions[0].snapshot.result.taurineZeroAssumption.ingredientIds).toEqual(
+      ['meat-041'],
+    );
+    const exported = (await owner('/v1/account/export')).json();
+    expect(
+      exported.barfRecipes.find((r: { id: string }) => r.id === saved.id).revisions[0].snapshot,
+    ).toEqual(snapshot);
   });
 
   it('manages pilot admission through the local operator command', async () => {
