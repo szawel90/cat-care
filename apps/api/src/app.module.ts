@@ -1,3 +1,5 @@
+import { CatsController } from './cats/cats.controller';
+import { CatsService } from './cats/cats.service';
 import { createDevelopmentMailSender } from './auth/mail-sender';
 import { getAuthSettings } from './auth/auth-settings';
 import { AccountController } from './auth/account.controller';
@@ -8,9 +10,10 @@ import { HealthService } from './health/health.service';
 import { PrismaService } from './prisma.service';
 
 @Module({
-  controllers: [HealthController, AccountController],
+  controllers: [HealthController, AccountController, CatsController],
   providers: [
     PrismaService,
+    CatsService,
     HealthService,
     AuthService,
     {

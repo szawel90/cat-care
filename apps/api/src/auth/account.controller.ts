@@ -1,3 +1,4 @@
+import { CatsService } from '../cats/cats.service';
 import { AccountPreferencesDto, UpdateAccountPreferencesDto } from './account-preferences.dto';
 import { Body, Post, HttpCode, BadRequestException } from '@nestjs/common';
 import { AccountExportDto } from './account-export.dto';
@@ -26,6 +27,7 @@ export class AccountController {
   constructor(
     private readonly auth: AuthService,
     private readonly prisma: PrismaService,
+    private readonly cats: CatsService,
   ) {}
 
   @Get('options')
@@ -106,6 +108,10 @@ export class AccountController {
         accounts: { select: { providerId: true, createdAt: true } },
       },
     });
-    return { exportedAt: new Date().toISOString(), profile: user };
+    return {
+      exportedAt: new Date().toISOString(),
+      profile: user,
+      ...(await this.cats.exportData(current.user.id)),
+    };
   }
 }

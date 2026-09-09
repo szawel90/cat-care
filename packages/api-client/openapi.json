@@ -153,6 +153,642 @@
         },
         "tags": ["Account"]
       }
+    },
+    "/v1/cats": {
+      "get": {
+        "operationId": "CatsController_list",
+        "parameters": [
+          {
+            "name": "archived",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CatResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      },
+      "post": {
+        "operationId": "CatsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      }
+    },
+    "/v1/cats/{id}": {
+      "get": {
+        "operationId": "CatsController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      },
+      "patch": {
+        "operationId": "CatsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      },
+      "delete": {
+        "operationId": "CatsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatVersionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "summary": "Archive the cat while preserving its full history.",
+        "tags": ["Cats"]
+      }
+    },
+    "/v1/cats/{id}/household": {
+      "post": {
+        "operationId": "CatsController_move",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveCatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      }
+    },
+    "/v1/cats/{id}/restore": {
+      "post": {
+        "operationId": "CatsController_restore",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatVersionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      }
+    },
+    "/v1/cats/{id}/history": {
+      "get": {
+        "operationId": "CatsController_profileHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      }
+    },
+    "/v1/cats/{id}/photo": {
+      "get": {
+        "operationId": "CatsController_photo",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      }
+    },
+    "/v1/cats/{id}/portrait": {
+      "get": {
+        "operationId": "CatsController_portrait",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest observation, or null before the first interview.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/PortraitResponseDto"
+                    }
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      },
+      "post": {
+        "operationId": "CatsController_start",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartPortraitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortraitResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "summary": "Start a new observation period without copying behavioral answers.",
+        "tags": ["Cats"]
+      },
+      "patch": {
+        "operationId": "CatsController_answer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerPortraitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortraitResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      }
+    },
+    "/v1/cats/{id}/portrait/revisions": {
+      "get": {
+        "operationId": "CatsController_history",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      }
+    },
+    "/v1/cats/{id}/portrait/revisions/{revision}": {
+      "get": {
+        "operationId": "CatsController_revision",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "revision",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortraitResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required."
+          },
+          "403": {
+            "description": "Access revoked or invalid request origin."
+          },
+          "404": {
+            "description": "The owned resource was not found."
+          },
+          "409": {
+            "description": "The record changed; reload before saving."
+          }
+        },
+        "tags": ["Cats"]
+      }
     }
   },
   "info": {
@@ -300,6 +936,22 @@
       "AccountExportDto": {
         "type": "object",
         "properties": {
+          "cats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Owned cats, archived cats, photo versions and immutable portrait revisions."
+          },
+          "households": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Owned households and their immutable versions."
+          },
           "exportedAt": {
             "type": "string",
             "format": "date-time"
@@ -308,7 +960,324 @@
             "$ref": "#/components/schemas/ExportedProfileDto"
           }
         },
-        "required": ["exportedAt", "profile"]
+        "required": ["cats", "households", "exportedAt", "profile"]
+      },
+      "CatResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          },
+          "photoVersion": {
+            "type": "number"
+          },
+          "hasPhoto": {
+            "type": "boolean"
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "household": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "archivedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "portraitStatus": {
+            "type": "string",
+            "enum": ["not_started", "awaiting_observation", "incomplete", "preliminary_portrait"]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "version",
+          "photoVersion",
+          "hasPhoto",
+          "attributes",
+          "events",
+          "household",
+          "createdAt",
+          "updatedAt",
+          "archivedAt",
+          "portraitStatus"
+        ]
+      },
+      "CreateCatDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "photoDataUrl": {
+            "type": "string",
+            "maxLength": 750000
+          },
+          "livesWithCatId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": ["name"]
+      },
+      "HouseholdUpdateDto": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "number"
+          },
+          "facts": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "environment": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "required": ["expectedVersion"]
+      },
+      "UpdateCatDto": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "photoDataUrl": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 750000
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "household": {
+            "$ref": "#/components/schemas/HouseholdUpdateDto"
+          }
+        },
+        "required": ["expectedVersion"]
+      },
+      "MoveCatDto": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "number"
+          },
+          "livesWithCatId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid",
+            "description": "A cat in the destination home; null creates a separate home."
+          }
+        },
+        "required": ["expectedVersion"]
+      },
+      "CatVersionDto": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "number"
+          }
+        },
+        "required": ["expectedVersion"]
+      },
+      "StartPortraitDto": {
+        "type": "object",
+        "properties": {
+          "expectedRevision": {
+            "type": "number"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodEnd": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": ["expectedRevision", "periodStart", "periodEnd"]
+      },
+      "PortraitResponseDto": {
+        "type": "object",
+        "properties": {
+          "catId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "number"
+          },
+          "assessmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "answers": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "followups": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "result": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "householdSnapshot": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "prefilledQuestions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isCurrent": {
+            "type": "boolean"
+          },
+          "supersededAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "contextChangedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "catId",
+          "revision",
+          "assessmentId",
+          "recordedAt",
+          "periodStart",
+          "periodEnd",
+          "answers",
+          "followups",
+          "result",
+          "householdSnapshot",
+          "prefilledQuestions",
+          "isCurrent",
+          "supersededAt",
+          "contextChangedAt"
+        ]
+      },
+      "AnswerPortraitDto": {
+        "type": "object",
+        "properties": {
+          "expectedRevision": {
+            "type": "number"
+          },
+          "questionId": {
+            "type": "string"
+          },
+          "answer": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        },
+        "required": ["expectedRevision", "questionId", "answer"]
       }
     }
   }

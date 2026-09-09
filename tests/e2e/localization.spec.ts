@@ -73,18 +73,24 @@ test('matches browser language priorities and keeps both catalogs complete', () 
     authErrorKey({ code: 'INVALID_EMAIL_OR_PASSWORD', message: 'private backend details' }),
   ).toBe('invalidCredentials');
   expect(authErrorKey({ message: 'unexpected private backend details' })).toBe('genericError');
-  for (const namespace of Object.keys(catalogs.en) as (keyof typeof catalogs.en)[]) {
-    const english = catalogs.en[namespace];
-    const polish = catalogs.pl[namespace];
-    expect(Object.keys(polish).sort()).toEqual(Object.keys(english).sort());
-    for (const [key, value] of Object.entries(english)) {
-      const translated = (polish as Record<string, string>)[key]!;
-      expect(translated.trim()).not.toBe('');
-      // Interpolated values and rich-text elements must survive translation.
-      const parameters = (text: string) =>
-        [...text.matchAll(/\{(\w+)[,}]|<(\w+)>/g)].map((match) => match[1] ?? match[2]).sort();
-      expect(parameters(translated)).toEqual(parameters(value));
-    }
+  function leaves(input: object, prefix = ''): Record<string, string> {
+    return Object.fromEntries(
+      Object.entries(input).flatMap(([key, value]) => {
+        const path = prefix ? `${prefix}.${key}` : key;
+        return typeof value === 'string' ? [[path, value]] : Object.entries(leaves(value, path));
+      }),
+    );
+  }
+  const english = leaves(catalogs.en),
+    polish = leaves(catalogs.pl);
+  expect(Object.keys(polish).sort()).toEqual(Object.keys(english).sort());
+  for (const [key, value] of Object.entries(english)) {
+    const translated = polish[key]!;
+    expect(translated.trim(), key).not.toBe('');
+    // Check interpolation and rich text at every nesting depth, including questionnaires.
+    const parameters = (text: string) =>
+      [...text.matchAll(/\{(\w+)[,}]|<(\w+)>/g)].map((match) => match[1] ?? match[2]).sort();
+    expect(parameters(translated), key).toEqual(parameters(value));
   }
 });
 

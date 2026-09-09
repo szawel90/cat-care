@@ -8,15 +8,24 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { AccountMenu } from './account-menu';
+import { ActiveCatPicker } from './cats-provider';
 import { Button } from './ui/button';
 
-export function HomeHeader() {
+export function HomeHeader({
+  beforeNavigate,
+  disabled = false,
+}: {
+  beforeNavigate?: () => Promise<boolean>;
+  disabled?: boolean;
+}) {
   const t = useTranslations('Common');
   const { data: session, error: sessionError, isPending } = authClient.useSession();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
   async function signOut() {
+    if (disabled) return;
+    if (beforeNavigate && !(await beforeNavigate())) return;
     setBusy(true);
     setError('');
     try {
@@ -31,16 +40,43 @@ export function HomeHeader() {
   }
   return (
     <>
-      <header className="site-header">
-        <Link className="brand" href="/" aria-label={t('home')}>
+      <header className={session && !sessionError ? 'site-header has-cat-picker' : 'site-header'}>
+        <Link
+          className="brand"
+          href="/"
+          aria-label={t('home')}
+          onClick={(event) => {
+            if (beforeNavigate) {
+              event.preventDefault();
+              void beforeNavigate().then((ok) => {
+                if (ok) router.push('/');
+              });
+            }
+          }}
+        >
           <Image src="/brand.svg" alt="" width={35} height={35} />
           cat care<span>.</span>
         </Link>
+        {session && !sessionError && (
+          <ActiveCatPicker beforeNavigate={beforeNavigate} disabled={busy || disabled} />
+        )}
         {session && !sessionError ? (
           <AccountMenu
             user={session.user}
-            busy={busy}
-            onSettings={() => router.push('/account?settings=profile')}
+            busy={busy || disabled}
+            onProfileClick={(event) => {
+              if (beforeNavigate) {
+                event.preventDefault();
+                void beforeNavigate().then((ok) => {
+                  if (ok) router.push('/account');
+                });
+              }
+            }}
+            onSettings={() => {
+              void (beforeNavigate?.() ?? Promise.resolve(true)).then((ok) => {
+                if (ok) router.push('/account?settings=profile');
+              });
+            }}
             onSignOut={() => void signOut()}
           />
         ) : (

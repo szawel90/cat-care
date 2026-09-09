@@ -33,7 +33,7 @@ try {
       .filter((part) => part.trim() && !part.includes('CREATE EXTENSION'))) {
       await admin.$executeRawUnsafe(
         statement.replace(
-          /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus|ThemePreference|LanguagePreference)"/g,
+          /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus|ThemePreference|LanguagePreference|Household|Cat|PortraitRevision|CatVersion|HouseholdVersion)"/g,
           `"${schema}"."$1"`,
         ),
       );
@@ -51,6 +51,8 @@ try {
       'appearance-mobile@example.test',
       'language-desktop@example.test',
       'language-mobile@example.test',
+      'cats-desktop@example.test',
+      'cats-mobile@example.test',
     ].map((email) => ({ email })),
   });
   await prisma.$disconnect();

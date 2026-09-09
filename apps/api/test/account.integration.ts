@@ -37,6 +37,7 @@ describe('Account lifecycle and access isolation', () => {
       '202609080003_email_actions',
       '202609080004_account_theme',
       '202609090001_account_language',
+      '202609090002_cats_and_households',
     ]) {
       const sql = await readFile(
         resolve(__dirname, '../../../prisma/migrations', name, 'migration.sql'),
@@ -45,7 +46,7 @@ describe('Account lifecycle and access isolation', () => {
       for (const statement of sql.split(';').filter((part) => part.trim())) {
         await admin.$executeRawUnsafe(
           statement.replace(
-            /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus|ThemePreference|LanguagePreference)"/g,
+            /"(User|AuthAccount|AuthSession|AuthVerification|AccessApproval|AuthRateLimit|EmailAction|UserRole|AccessStatus|ThemePreference|LanguagePreference|Household|Cat|PortraitRevision|CatVersion|HouseholdVersion)"/g,
             `"${schema}"."$1"`,
           ),
         );

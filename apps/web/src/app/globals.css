@@ -1,5 +1,6 @@
 @import './ui.css';
 @import './themes.css';
+@import './cats.css';
 
 :root {
   --ink: var(--ui-foreground);
