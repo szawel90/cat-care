@@ -7,7 +7,7 @@ import {
 } from './planner';
 export * from './planner';
 
-export const BARF_ENGINE_VERSION = 'barf-1.9c-corrected-v2';
+export const BARF_ENGINE_VERSION = 'barf-1.9c-corrected-v3';
 export type BarfNutrientId = keyof (typeof data.ingredients)[number]['nutrients'];
 export interface BarfIngredient {
   id: string;
@@ -49,7 +49,13 @@ export interface BarfNutrientResult {
   perKgDay: number | null;
   per1000Kcal: number | null;
 }
+export interface BarfZeroAssumption {
+  value: 0;
+  nutrients: { nutrientId: BarfNutrientId; ingredientIds: string[] }[];
+}
 export interface BarfResult {
+  /** v3 calculation policy; source nulls remain intact and historical results are unchanged. */
+  missingValuesAssumption?: BarfZeroAssumption;
   meatGrams: number;
   knownMixtureGrams: number;
   massIncomplete: boolean;
@@ -116,7 +122,7 @@ export function validateBarfInput(input: BarfInput, catalog: BarfCatalog = data)
   validateBarfPlanContext(input, catalog);
 }
 
-/** Preserve source gaps; v2 explicitly assumes zero only for missing taurine. */
+/** Preserve source gaps while v3 explicitly counts every missing nutrient contribution as zero. */
 export function calculateBarf(input: BarfInput, catalog: BarfCatalog = data): BarfResult {
   validateBarfInput(input, catalog);
   const ingredients = new Map(catalog.ingredients.map((ingredient) => [ingredient.id, ingredient]));
@@ -162,25 +168,16 @@ export function calculateBarf(input: BarfInput, catalog: BarfCatalog = data): Ba
     result.perDay = days ? result.knownTotal / days : null;
     result.perKgDay = days ? result.knownTotal / days / input.catWeightKg : null;
     result.per1000Kcal =
-      nutrients.energy.knownTotal > 0 && nutrients.energy.missingIngredientIds.length === 0
+      nutrients.energy.knownTotal > 0
         ? (result.knownTotal / nutrients.energy.knownTotal) * 1000
         : null;
   }
   const dryMass = knownMixtureGrams - nutrients.water.knownTotal;
   function ratio(a: BarfNutrientId, b: BarfNutrientId) {
-    return nutrients[a].missingIngredientIds.length === 0 &&
-      nutrients[b].missingIngredientIds.length === 0 &&
-      nutrients[b].knownTotal > 0
-      ? nutrients[a].knownTotal / nutrients[b].knownTotal
-      : null;
+    return nutrients[b].knownTotal > 0 ? nutrients[a].knownTotal / nutrients[b].knownTotal : null;
   }
   function dryMatter(id: 'protein' | 'fat') {
-    return !massIncomplete &&
-      dryMass > 0 &&
-      !nutrients.water.missingIngredientIds.length &&
-      !nutrients[id].missingIngredientIds.length
-      ? (nutrients[id].knownTotal / dryMass) * 100
-      : null;
+    return !massIncomplete && dryMass > 0 ? (nutrients[id].knownTotal / dryMass) * 100 : null;
   }
   return {
     meatGrams,
@@ -189,7 +186,7 @@ export function calculateBarf(input: BarfInput, catalog: BarfCatalog = data): Ba
     days,
     dailyPortionGrams: days && !massIncomplete ? knownMixtureGrams / days : null,
     moisturePercent:
-      knownMixtureGrams > 0 && !massIncomplete && !nutrients.water.missingIngredientIds.length
+      knownMixtureGrams > 0 && !massIncomplete
         ? (nutrients.water.knownTotal / knownMixtureGrams) * 100
         : null,
     proteinDryMatterPercent: dryMatter('protein'),
@@ -200,6 +197,15 @@ export function calculateBarf(input: BarfInput, catalog: BarfCatalog = data): Ba
     missingNutrientCount: Object.values(nutrients).filter((n) => n.missingIngredientIds.length > 0)
       .length,
     validation: 'legacy-unverified',
+    missingValuesAssumption: {
+      value: 0,
+      nutrients: barfNutrients
+        .filter((n) => nutrients[n.id].missingIngredientIds.length > 0)
+        .map((n) => ({
+          nutrientId: n.id,
+          ingredientIds: [...nutrients[n.id].missingIngredientIds],
+        })),
+    },
     taurineZeroAssumption: { value: 0, ingredientIds: [...nutrients.taurine.missingIngredientIds] },
   };
 }
@@ -235,13 +241,11 @@ export function suggestBarfQuantity(
   if (!rule || result.meatGrams <= 0) return answer;
   const perUnit = (id: BarfNutrientId) => {
     const amount = ingredient.nutrients[id];
-    return amount === null ? null : amount / ingredient.basisQuantity;
+    return (amount ?? 0) / ingredient.basisQuantity;
   };
   // Keep the source's known subtotal available, but disclose every omitted input.
   const known = (id: BarfNutrientId) => {
-    if (id === 'taurine')
-      answer.assumedZeroIngredientIds.push(...result.nutrients[id].missingIngredientIds);
-    else answer.missingIngredientIds.push(...result.nutrients[id].missingIngredientIds);
+    answer.assumedZeroIngredientIds.push(...result.nutrients[id].missingIngredientIds);
     return result.nutrients[id].knownTotal;
   };
   let quantity: number | null = null;
@@ -277,7 +281,8 @@ export function suggestBarfQuantity(
       quantity = (reference - known(nutrient)) / concentration;
   }
   answer.missingIngredientIds = [...new Set(answer.missingIngredientIds)];
-  // Only the explicit taurine policy permits a missing contribution in a suggestion.
+  answer.assumedZeroIngredientIds = [...new Set(answer.assumedZeroIngredientIds)];
+  // A zero concentration still cannot justify dividing by zero or inventing a dose.
   if (
     quantity !== null &&
     Number.isFinite(quantity) &&

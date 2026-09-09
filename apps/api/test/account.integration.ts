@@ -239,7 +239,7 @@ describe('Account lifecycle and access isolation', () => {
     expect(await prisma.barfPreferences.count({ where: { userId } })).toBe(0);
   });
 
-  it('recomputes planner assessments and taurine assumptions while preserving legacy history', async () => {
+  it('recomputes planner assessments and all-nutrient zero assumptions while preserving legacy history', async () => {
     const email = 'barf-planner@example.test';
     const owner = await register(email);
     await owner(link(email, 'Verify'));
@@ -277,6 +277,13 @@ describe('Account lifecycle and access isolation', () => {
       ingredientIds: ['meat-041'],
     });
     expect(snapshot.planning.targetsMet).toBe(false);
+    expect(snapshot.result.missingValuesAssumption.value).toBe(0);
+    expect(snapshot.planning.missingValuesAssumption).toEqual(
+      snapshot.result.missingValuesAssumption,
+    );
+    expect(
+      snapshot.planning.checks.every((c: { actual: number | null }) => c.actual !== null),
+    ).toBe(true);
     expect(snapshot.planning.purchases).toEqual([
       { ingredientId: 'supplement-016', quantity: 2.417 },
     ]);
@@ -291,6 +298,7 @@ describe('Account lifecycle and access isolation', () => {
     const legacy = snapshotBarf(legacyInput);
     legacy.input.engineVersion = 'barf-1.9c-corrected-v1';
     delete legacy.result.taurineZeroAssumption;
+    delete legacy.result.missingValuesAssumption;
     const stored = await prisma.barfRecipe.create({
       data: {
         userId,

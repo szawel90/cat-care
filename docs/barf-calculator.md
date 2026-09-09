@@ -27,16 +27,14 @@ Nutrients use the source per-100-g basis except vitamin E capsule/drop records,
 which are per unit. A source yolk is 16 g. Missing capsule/drop masses prevent a
 complete portion/mass/moisture result; the known mass remains visible.
 
-Every blank/error value stays `null`, with the affected ingredient IDs attached to
-the nutrient result. An explicit source zero stays zero, without claiming laboratory
-verification. Totals with missing contributions are labeled known subtotals.
-Engine v2 explicitly counts missing taurine as zero for calculations while preserving
-the source `null`. Snapshots retain the assumption and affected IDs; the interface,
-suggestions, print and shopping list disclose it. It is not a claim that the food
-contains no taurine. Historical v1 results remain unchanged; copying uses v2.
-Automatic quantity suggestions are otherwise unavailable when required source inputs
-are missing. Other nutrient gaps still appear in the balance. No result is labeled
-as a verified complete diet, and no disease-specific prescription is generated.
+Every blank/error value stays `null` in source data. Engine v3 explicitly counts
+every missing nutrient contribution as zero. Snapshots retain the policy and the
+affected nutrient/product IDs in `missingValuesAssumption`; numeric totals, ratios,
+suggestions, print and shopping lists use and disclose the assumption. This is not
+a measured absence. Historical v1/v2 snapshots remain unchanged; copying uses v3.
+Missing mass conversions or zero denominators cannot produce a finite ratio or dose.
+No result is labeled as a verified complete diet, and no disease-specific prescription
+is generated. Nutrients without a source target are totaled but no target is invented.
 
 ## Deliberate differences from 1.9c
 
@@ -50,7 +48,7 @@ as a verified complete diet, and no disease-specific prescription is generated.
   against the other current ingredients and require an explicit user action to apply.
 - Nonfinite/negative inputs, unknown IDs, duplicates, unsupported versions and zero
   denominators cannot silently produce a saved calculation or an invalid suggestion.
-- Missing values and capsule/drop masses remain visible uncertainties.
+- Missing nutrient values are assumed zero; source gaps and unknown capsule/drop masses remain preserved.
 
 Suggestions preserve the source's individual nutrient, Ca:P 1.15, K:Na 1.35,
 75% moisture, 25% dry-matter fat, yeast and premix arithmetic. They do not solve
@@ -78,27 +76,41 @@ excluded from automatic choices. Multiple full-dose premixes cannot be combined.
 Automatic gram quantities have 0.001-unit arithmetic precision; this does not establish
 the practical measurement precision of every product.
 
-YALPS 0.6.4 (MIT) fits each selected set as a linear program. Stock bounds and fixed
-amounts are hard constraints. Each selected additive's original rule is a simultaneous
-equation. A missing required coefficient blocks that equation (only missing taurine
-uses the explicitly disclosed zero assumption). Quantities are rounded and all dose
-equations and stock bounds are rechecked together.
+YALPS 0.6.4 (MIT) fits quantities under stock bounds and fixed base amounts.
+Planner v2 has two separate search strategies:
 
-The deterministic search checks at most 1,200 combinations and retains up to 12
-candidates at each depth. The width adapts to catalog size and expected depth so
-brand alternatives cannot consume the whole budget before deeper recipes are tried. Available products are considered before new products. Among checked
-proposals meeting the source targets, fewer purchases and then fewer additives win.
-Partial proposals are ranked by remaining normalized source deviations, new excess
-relative to the baseline, and a penalty for newly unassessed values. Missing data
-cannot count as correcting a shortfall. This bounded search is not a proof of global
-optimality or infeasibility; the interface discloses a search limit when reached.
+- **Inventory** retains bounded candidate search (at most 1,200 combinations and an
+  adaptive beam up to 12) and simultaneous source dose rules, with no more than three
+  new products. Missing nutrient contributions now count as zero in every equation.
+- **Food base** considers all eligible gram-based additions together. It enumerates
+  the no-premix case and each single premix, with a premix bounded by its source dose.
+  Individual supplement dose rules no longer force exact equations: the objective
+  minimizes the sum of squared normalized residuals across **all 31 available targets**.
+  Deficits and excesses both contribute; an excess never counts as an exact match.
+  Only equally good nutrient results may prefer a smaller maximum residual or fewer
+  ingredients. There is no stop after one corrected deficit or three additions.
 
-Nutrient references are comparison targets, not verified minimum/maximum safety
-constraints. Ratios use the original Ca:P 1.15, K:Na 1.35, moisture 75% and dry-matter
-fat 25% targets. The assessment lists source-reference matches, shortfalls, amounts
-above reference with upper limits unassessed, off-target ratios and missing data.
-Even a match to all assessed targets is a **working proposal**, not a complete-diet
-or disease-specific suitability claim. Sparse source data can prevent a full proposal.
+Nutrient residuals are normalized by their reference for the fixed entered meat batch.
+Ratio residuals use fixed batch scales (Ca:P and K:Na denominator reference amounts;
+water 75% of batch mass; fat 25% of the assumed 25% dry batch mass). This puts g, mg,
+micrograms and IU on comparable scales and prevents water dilution of the objective.
+The displayed percentage deviations use the actual final reference/ratio; they are
+distinct from this fixed normalization used during optimization. Added fats still
+affect final references under the unchanged 1.9c model.
+
+The convex squared objective is solved through successively refined tangent bounds,
+with a 32-iteration cap and a relative/absolute objective gap of 1e-7. Fixed base foods
+are eliminated into RHS constants for numerical stability. A solver/iteration limit
+is disclosed; a bounded result is a closest found working proposal, not a proof of
+global optimum or infeasibility. After rounding quantities to 0.001 units, stock
+constraints and the complete balance are recomputed. Inventory dose equations are
+also rechecked. The original source targets have small internal disagreements (e.g.
+80/70 versus Ca:P 1.15), so exact simultaneous matches are not always possible.
+
+References remain comparison targets, not verified safe minima, maxima or clinical
+optima. Missing numeric contributions count as zero; undefined ratios from zero
+denominators remain undefined. Every shortfall and excess stays visible. Even an
+exact match remains a **working proposal** based on source data and assumptions.
 
 The worker keeps the search off the browser's main thread. Edits invalidate an old
 proposal and terminate its worker. Applying a proposal opens it in manual balance

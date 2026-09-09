@@ -201,12 +201,12 @@ test('creates, versions, copies and archives an owner recipe in both locales', a
   await page
     .getByRole('combobox', { name: 'Zapisane receptury', exact: true })
     .selectOption(planned.id);
-  await expect(page.getByText(/Założenie obliczeniowe: brakującą taurynę/).first()).toBeVisible();
+  await expect(page.getByText(/Założenie obliczeń: każdą brakującą wartość/).first()).toBeVisible();
   const plannerDownload = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Lista zakupów', exact: true }).click();
   const plannedText = await readFile((await (await plannerDownload).path())!, 'utf8');
   expect(plannedText).toContain('Do dokupienia');
-  expect(plannedText).toContain('Założenie obliczeniowe');
+  expect(plannedText).toContain('Założenie obliczeń');
   await page.getByRole('button', { name: 'Nowa receptura', exact: true }).click();
   await page.getByLabel('Nazwa receptury', { exact: true }).fill('Synthetic food base');
   await page.getByLabel('Sposób układania receptury').selectOption('supplements');
@@ -226,6 +226,13 @@ test('creates, versions, copies and archives an owner recipe in both locales', a
       r.revisions[0].snapshot.input.title === 'Synthetic food base',
   );
   expect(foodRecipe.revisions[0].snapshot.input.planning.mode).toBe('supplements');
+  expect(foodRecipe.revisions[0].snapshot.planning.purchases.length).toBeGreaterThan(3);
+  expect(
+    foodRecipe.revisions[0].snapshot.planning.checks.every(
+      (c: { actual: number | null }) => c.actual !== null,
+    ),
+  ).toBe(true);
+  expect(foodRecipe.revisions[0].snapshot.result.missingValuesAssumption.value).toBe(0);
   expect(
     foodRecipe.revisions[0].snapshot.input.items.find(
       (i: { ingredientId: string }) => i.ingredientId === 'meat-041',

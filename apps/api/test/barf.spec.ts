@@ -95,7 +95,7 @@ describe('BARF corrected 1.9c arithmetic', () => {
     expect(result.knownMixtureGrams).toBe(4000);
   });
 
-  it('tracks missing contributors and refuses a suggestion based on missing required data', () => {
+  it('tracks missing contributors while using the explicit zero assumption in totals, ratios and doses', () => {
     const meat = ingredient('meat', { taurine: null, calcium: null, phosphorus: 100 }, null, true);
     const taurine = ingredient('taurine', { taurine: 100_000 }, 'taurine');
     const input = meal([{ ingredientId: 'meat', quantity: 1000 }]);
@@ -104,11 +104,15 @@ describe('BARF corrected 1.9c arithmetic', () => {
       knownTotal: 0,
       missingIngredientIds: ['meat'],
     });
-    expect(result.calciumPhosphorus).toBeNull();
+    expect(result.calciumPhosphorus).toBe(0);
     expect(result.taurineZeroAssumption).toEqual({ value: 0, ingredientIds: ['meat'] });
     expect(meat.nutrients.taurine).toBeNull();
     const calcium = ingredient('calcium', { calcium: 40_000, phosphorus: 0 }, 'calciumPhosphorus');
-    expect(suggestBarfQuantity(input, 'calcium', catalog(meat, calcium)).quantity).toBeNull();
+    expect(suggestBarfQuantity(input, 'calcium', catalog(meat, calcium)).quantity).toBe(2.875);
+    expect(result.missingValuesAssumption?.nutrients).toContainEqual({
+      nutrientId: 'calcium',
+      ingredientIds: ['meat'],
+    });
     expect(suggestBarfQuantity(input, 'taurine', catalog(meat, taurine))).toMatchObject({
       quantity: 2.4,
       missingIngredientIds: [],

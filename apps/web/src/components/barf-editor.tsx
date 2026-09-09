@@ -79,11 +79,14 @@ export function BarfEditor({
   const validQuantity =
     Number.isFinite(Number(quantity)) && Number(quantity) >= 0.001 && Number(quantity) <= 100_000;
   const assumedIds = result?.taurineZeroAssumption?.ingredientIds ?? [];
-  const assumptionText = assumedIds.length
-    ? t('taurineAssumption', {
-        names: assumedIds.map((id) => ingredientById.get(id)?.name[locale] ?? id).join(', '),
-      })
-    : null;
+  const zeroPolicy = !!result?.missingValuesAssumption;
+  const assumptionText = zeroPolicy
+    ? t('allMissingAssumption')
+    : assumedIds.length
+      ? t('taurineAssumption', {
+          names: assumedIds.map((id) => ingredientById.get(id)?.name[locale] ?? id).join(', '),
+        })
+      : null;
   const blocked = busy || readOnly;
   const setField = <K extends keyof BarfInput>(key: K, value: BarfInput[K]) =>
     onChange({ ...input, [key]: value, ...(key === 'items' ? { planning: undefined } : {}) });
@@ -326,7 +329,7 @@ export function BarfEditor({
                       <div className="barf-calculation-note">
                         {suggestion.assumedZeroIngredientIds.length > 0 && (
                           <p>
-                            {t('taurineAssumption', {
+                            {t('missingSuggestionAssumption', {
                               names: suggestion.assumedZeroIngredientIds
                                 .map((id) => ingredientById.get(id)?.name[locale] ?? id)
                                 .join(', '),
@@ -492,7 +495,7 @@ export function BarfEditor({
                     <dd>{number(result.days)}</dd>
                   </div>
                   <div>
-                    <dt>{t('missingNutrients')}</dt>
+                    <dt>{t(zeroPolicy ? 'assumedNutrients' : 'missingNutrients')}</dt>
                     <dd>{result.missingNutrientCount}</dd>
                   </div>
                 </dl>
@@ -507,7 +510,9 @@ export function BarfEditor({
                 {result.meatGrams === 0 && <p>{t('needMeat')}</p>}
                 {result.massIncomplete && <p className="barf-hint">{t('massIncomplete')}</p>}
                 {result.missingNutrientCount > 0 && (
-                  <p className="barf-hint">{t('missingExplanation')}</p>
+                  <p className="barf-hint">
+                    {t(zeroPolicy ? 'allMissingExplanation' : 'missingExplanation')}
+                  </p>
                 )}
                 <details className="barf-details">
                   <summary>{t('ratios')}</summary>
@@ -553,13 +558,19 @@ export function BarfEditor({
                           <tr key={nutrient.id}>
                             <th scope="row">
                               {nutrient.name[locale]} <small>({nutrient.unit})</small>
-                              {nutrient.id === 'taurine' && assumedIds.length > 0 && (
-                                <small>{t('taurineAssumedZero')}</small>
-                              )}
+                              {value.missingIngredientIds.length > 0 &&
+                                (zeroPolicy ||
+                                  (nutrient.id === 'taurine' && assumedIds.length > 0)) && (
+                                  <small>
+                                    {t(zeroPolicy ? 'nutrientAssumedZero' : 'taurineAssumedZero')}
+                                  </small>
+                                )}
                               {value.missingIngredientIds.length > 0 && (
                                 <details>
                                   <summary>
-                                    {t('missingFor', { count: value.missingIngredientIds.length })}
+                                    {t(zeroPolicy ? 'assumedFor' : 'missingFor', {
+                                      count: value.missingIngredientIds.length,
+                                    })}
                                   </summary>
                                   <ul>
                                     {value.missingIngredientIds.map((id) => (
@@ -657,7 +668,8 @@ export function BarfEditor({
           {number(result?.days ?? null)}
         </p>
         <p>
-          {t('missingNutrients')}: {result?.missingNutrientCount ?? '—'}
+          {t(zeroPolicy ? 'assumedNutrients' : 'missingNutrients')}:{' '}
+          {result?.missingNutrientCount ?? '—'}
         </p>
         <p>{t('sourceModel')}</p>
         <p>

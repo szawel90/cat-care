@@ -83,7 +83,8 @@ describe('BARF inventory planner', () => {
     const stock = context(meal);
     stock.inventory[1]!.useAll = false;
     const result = planBarf(meal, stock, catalog(meat, taurine));
-    expect(result.targetsMet).toBe(true);
+    // Fixture Ca/P and K/Na references differ by up to 1.25%; they are not exact optima.
+    expect(Math.max(...result.checks.map((c) => c.gap))).toBeLessThan(0.015);
     expect(result.purchases).toEqual([]);
     expect(result.input!.items).toContainEqual({ ingredientId: 'taurine', quantity: 2.4 });
     expect(result.unused).toContainEqual({ ingredientId: 'taurine', quantity: 7.6 });
@@ -100,9 +101,12 @@ describe('BARF inventory planner', () => {
         .map((rule) => product(rule, { [rule]: 100_000 }, rule));
       const meal = input();
       const result = planBarf(meal, context(meal), catalog(meat, ...supplements));
-      expect(result.targetsMet).toBe(true);
+      // Fixture Ca/P and K/Na references differ by up to 1.25%; they are not exact optima.
+      expect(Math.max(...result.checks.map((c) => c.gap))).toBeLessThan(0.015);
       expect(result.purchases).toHaveLength(count);
-      expect(assessBarfPlan(result.input!, catalog(meat, ...supplements)).targetsMet).toBe(true);
+      expect(assessBarfPlan(result.input!, catalog(meat, ...supplements)).checks).toEqual(
+        result.checks,
+      );
     },
   );
 
@@ -119,7 +123,8 @@ describe('BARF inventory planner', () => {
     );
     const meal = input();
     const result = planBarf(meal, context(meal), catalog(meat, combined, ...products));
-    expect(result.targetsMet).toBe(true);
+    // Fixture Ca/P and K/Na references differ by up to 1.25%; they are not exact optima.
+    expect(Math.max(...result.checks.map((c) => c.gap))).toBeLessThan(0.015);
     expect(result.purchases.map((p) => p.ingredientId)).toEqual(['combined']);
   });
 
@@ -150,7 +155,8 @@ describe('BARF inventory planner', () => {
     });
     const result = planBarf(meal, stock, catalog(meat, ...supplements));
     expect(result.purchases).toEqual([]);
-    expect(result.targetsMet).toBe(true);
+    // Fixture Ca/P and K/Na references differ by up to 1.25%; they are not exact optima.
+    expect(Math.max(...result.checks.map((c) => c.gap))).toBeLessThan(0.015);
     expect(result.input!.items).toHaveLength(5);
   });
 
@@ -182,7 +188,7 @@ describe('BARF inventory planner', () => {
     expect(result.purchases).toEqual([]);
   });
 
-  it('allows the explicit taurine-zero assumption but blocks doses with other missing required inputs', () => {
+  it('uses the all-nutrient zero assumption without rewriting source gaps', () => {
     const meat = completeMeat();
     meat.nutrients.taurine = null;
     meat.nutrients.iodine = null;
@@ -192,12 +198,13 @@ describe('BARF inventory planner', () => {
     const source = catalog(meat, taurine, iodine);
     const before = structuredClone(source);
     const result = planBarf(meal, context(meal), source);
-    expect(result.purchases.map((i) => i.ingredientId)).toEqual(['taurine']);
+    expect(result.purchases.map((i) => i.ingredientId)).toEqual(['iodine', 'taurine']);
     expect(result.taurineZeroAssumption).toEqual({ value: 0, ingredientIds: ['meat'] });
     expect(result.targetsMet).toBe(false);
     expect(result.checks.find((c) => c.id === 'iodine')).toMatchObject({
-      status: 'missing-data',
-      missingIngredientIds: ['meat'],
+      status: 'at-reference',
+      actual: 600,
+      missingIngredientIds: [],
     });
     expect(calculateBarf(result.input!, source).taurineZeroAssumption?.ingredientIds).toEqual([
       'meat',
@@ -205,7 +212,7 @@ describe('BARF inventory planner', () => {
     expect(source).toEqual(before);
   });
 
-  it('does not combine mutually uncheckable supplements even if each works by itself', () => {
+  it('combines supplements while treating missing cross-contributions as zero', () => {
     const meat = completeMeat();
     meat.nutrients.taurine = meat.nutrients.iodine = 0;
     const taurine = product('taurine', { taurine: 100_000, iodine: null }, 'taurine');
@@ -213,7 +220,11 @@ describe('BARF inventory planner', () => {
     const meal = input();
     const result = planBarf(meal, context(meal), catalog(meat, taurine, iodine));
     expect(result.targetsMet).toBe(false);
-    expect(result.purchases.length).toBeLessThan(2);
+    expect(result.purchases).toHaveLength(2);
+    expect(result.missingValuesAssumption?.nutrients).toContainEqual({
+      nutrientId: 'iodine',
+      ingredientIds: ['taurine'],
+    });
   });
 
   it('offers a separate food-base mode that can calculate more than three new supplements', () => {
@@ -227,7 +238,8 @@ describe('BARF inventory planner', () => {
       { ...context(meal), mode: 'supplements' },
       catalog(meat, ...supplements),
     );
-    expect(result.targetsMet).toBe(true);
+    // Fixture Ca/P and K/Na references differ by up to 1.25%; they are not exact optima.
+    expect(Math.max(...result.checks.map((c) => c.gap))).toBeLessThan(0.015);
     expect(result.purchases).toHaveLength(4);
     expect(result.input!.items.find((i) => i.ingredientId === 'meat')?.quantity).toBe(1000);
     expect(() =>
@@ -259,7 +271,8 @@ describe('BARF inventory planner', () => {
       { ...context(meal), mode: 'supplements' },
       catalog(meat, ...brands, ...supplements),
     );
-    expect(result.targetsMet).toBe(true);
+    // Fixture Ca/P and K/Na references differ by up to 1.25%; they are not exact optima.
+    expect(Math.max(...result.checks.map((c) => c.gap))).toBeLessThan(0.015);
     expect(result.purchases).toHaveLength(4);
     expect(result.checkedCombinations).toBeLessThanOrEqual(1200);
   });
@@ -313,4 +326,71 @@ describe('BARF inventory planner', () => {
       true,
     );
   });
+});
+
+describe('whole-balance regression', () => {
+  it('minimizes joint relative errors instead of forcing one target and doubling another', () => {
+    const meat = completeMeat();
+    meat.nutrients.taurine = meat.nutrients.iodine = 0;
+    const combined = product('combined', { taurine: 100_000, iodine: 50_000 }, 'taurine');
+    const meal = input();
+    const result = planBarf(
+      meal,
+      { ...context(meal), mode: 'supplements' },
+      catalog(meat, combined),
+    );
+    // Independent least-squares optimum: x = (1/2.4 + 1/1.2) / (1/2.4**2 + 1/1.2**2) = 1.44 grams.
+    expect(result.purchases).toEqual([{ ingredientId: 'combined', quantity: 1.44 }]);
+    expect(result.checks.find((c) => c.id === 'taurine')!.gap).toBeCloseTo(0.4, 2);
+    expect(result.checks.find((c) => c.id === 'iodine')!.gap).toBeCloseTo(0.2, 2);
+    expect(result.targetsMet).toBe(false);
+  });
+
+  it('uses zero for every missing nutrient and fills four separate gaps together', () => {
+    const meat = completeMeat();
+    const rules = ['taurine', 'iodine', 'iron', 'vitaminA'] as const;
+    for (const rule of rules) meat.nutrients[rule] = null;
+    const supplements = rules.map((rule) =>
+      product(rule, { [rule]: 100_000, vitaminD: null }, rule),
+    );
+    const source = catalog(meat, ...supplements);
+    const original = structuredClone(source);
+    const meal = input();
+    const result = planBarf(meal, { ...context(meal), mode: 'supplements' }, source);
+    expect(result.purchases).toHaveLength(4);
+    for (const rule of rules)
+      expect(result.checks.find((c) => c.id === rule)!.gap).toBeLessThan(0.09);
+    expect(result.checks.every((c) => c.actual !== null && c.status !== 'missing-data')).toBe(true);
+    expect(source).toEqual(original);
+  });
+
+  it('never treats a large fixed excess as a fully met target', () => {
+    const meat = completeMeat();
+    meat.nutrients.iron = 300;
+    const meal = input();
+    const result = planBarf(meal, { ...context(meal), mode: 'supplements' }, catalog(meat));
+    expect(result.targetsMet).toBe(false);
+    expect(result.checks.find((c) => c.id === 'iron')!.gap).toBeCloseTo(49, 6);
+    expect(result.input!.items).toEqual(meal.items);
+  });
+});
+
+describe('catalog-wide balance regression', () => {
+  it.each(['meat-041', 'meat-076'])(
+    'fits the complete pool for %s without inventing excess calcium or taurine',
+    (id) => {
+      const meal = input([{ ingredientId: id, quantity: 1000 }]);
+      const result = planBarf(meal, { ...context(meal), mode: 'supplements' });
+      expect(result.status).toBe('proposal');
+      expect(result.purchases.length).toBeGreaterThan(3);
+      expect(
+        result.purchases.every((i) => (String(i.quantity).split('.')[1]?.length ?? 0) <= 3),
+      ).toBe(true);
+      expect(result.checks.every((c) => c.actual !== null)).toBe(true);
+      expect(result.checks.find((c) => c.id === 'taurine')!.gap).toBeLessThan(0.02);
+      expect(result.checks.find((c) => c.id === 'calcium')!.gap).toBeLessThan(0.1);
+      expect(result.checks.find((c) => c.id === 'iodine')!.gap).toBeLessThan(0.03);
+      expect(result.input!.items.find((i) => i.ingredientId === id)!.quantity).toBe(1000);
+    },
+  );
 });

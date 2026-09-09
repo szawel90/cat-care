@@ -147,6 +147,14 @@ export const BaseFoodsProposal: Story = {
     await waitFor(() => expect(canvas.getByRole('button', { name: t.planApply })).toBeVisible(), {
       timeout: 15000,
     });
+    await expect(
+      canvas.getByText(t.allMissingAssumption, { selector: '.barf-plan-summary p.barf-hint' }),
+    ).toBeVisible();
+    await userEvent.click(canvas.getByText(t.planChecks, { selector: 'summary' }));
+    await expect(canvas.queryByText(t['planStatus_missing-data'])).not.toBeInTheDocument();
+    await expect(
+      canvas.getAllByText(/Deviation from target:|Odchylenie od celu:/).length,
+    ).toBeGreaterThan(20);
     await userEvent.click(canvas.getByRole('button', { name: t.planApply }));
     await expect(canvas.getByRole('button', { name: t.saveRecipe })).toBeEnabled();
   },
@@ -194,6 +202,7 @@ const historicalTaurine = snapshotBarf({
 });
 historicalTaurine.input.engineVersion = 'barf-1.9c-corrected-v1';
 delete historicalTaurine.result.taurineZeroAssumption;
+delete historicalTaurine.result.missingValuesAssumption;
 export const LegacyMissingTaurine: Story = {
   args: { initial: historicalTaurine.input, snapshot: historicalTaurine, readOnly: true },
   play: async ({ canvas, globals }) => {

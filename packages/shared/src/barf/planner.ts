@@ -9,9 +9,10 @@ import {
   type BarfInput,
   type BarfItem,
   type BarfNutrientId,
+  type BarfZeroAssumption,
 } from './index';
 
-export const BARF_PLANNER_VERSION = 'barf-inventory-v1';
+export const BARF_PLANNER_VERSION = 'barf-balance-v2';
 export const BARF_NEW_PRODUCT_LIMIT = 3;
 export interface BarfStockItem extends BarfItem {
   useAll: boolean;
@@ -33,6 +34,7 @@ export interface BarfPlanCheck {
   gap: number;
 }
 export interface BarfPlanAssessment {
+  missingValuesAssumption?: BarfZeroAssumption;
   taurineZeroAssumption?: { value: 0; ingredientIds: string[] };
   checks: BarfPlanCheck[];
   purchases: BarfItem[];
@@ -54,7 +56,7 @@ const numericTolerance = 1e-6;
 
 function contribution(i: BarfIngredient, id: BarfNutrientId): number | null {
   const value = i.nutrients[id];
-  if (value === null) return id === 'taurine' ? 0 : null;
+  if (value === null) return 0;
   return i.unit === 'yolk' ? (value * 16) / 100 : value / i.basisQuantity;
 }
 function meatCoefficient(i: BarfIngredient) {
@@ -152,7 +154,7 @@ export function validateBarfPlanContext(input: BarfInput, catalog = barfCatalog)
     throw new Error('BARF_BATCH_MISMATCH');
 }
 
-/** Linear source-target residual per unit. Null always blocks that specific equation. */
+/** Linear target residual. Nutrient blanks are zero; missing unit conversions remain invalid. */
 function coefficient(
   i: BarfIngredient,
   rule: string,
@@ -239,8 +241,8 @@ function checks(input: BarfInput, catalog: BarfCatalog): BarfPlanCheck[] {
     const gap = unknown
       ? 1
       : raw
-        ? Math.max(0, (target - actual!) / Math.max(target, 1e-8))
-        : Math.min(1, Math.abs(actual! - target) / target);
+        ? Math.abs(target - actual!) / Math.max(target, 1e-8)
+        : Math.abs(actual! - target) / target;
     const status: BarfPlanCheck['status'] = unknown
       ? 'missing-data'
       : Math.abs(residual) <= tolerance
@@ -256,7 +258,7 @@ function checks(input: BarfInput, catalog: BarfCatalog): BarfPlanCheck[] {
       target,
       status,
       missingIngredientIds: missing,
-      gap: status === 'at-reference' || status === 'above-reference' ? 0 : gap,
+      gap: status === 'at-reference' ? 0 : gap,
     };
   });
 }
@@ -269,6 +271,8 @@ export function assessBarfPlan(input: BarfInput, catalog = barfCatalog): BarfPla
   const assessment = checks(input, catalog);
   return {
     checks: assessment,
+    missingValuesAssumption: calculateBarf({ ...input, planning: undefined }, catalog)
+      .missingValuesAssumption,
     taurineZeroAssumption: calculateBarf({ ...input, planning: undefined }, catalog)
       .taurineZeroAssumption,
     purchases: input.planning ? input.items.filter((i) => !owned.has(i.ingredientId)) : [],
@@ -278,18 +282,71 @@ export function assessBarfPlan(input: BarfInput, catalog = barfCatalog): BarfPla
         quantity: Math.max(0, i.quantity - (quantities.get(i.ingredientId) ?? 0)),
       }))
       .filter((i) => i.quantity > 1e-8),
-    targetsMet: assessment.every(
-      (c) => c.status === 'at-reference' || c.status === 'above-reference',
-    ),
+    targetsMet: assessment.every((c) => c.status === 'at-reference'),
   };
 }
 
-/** Fit one selected set simultaneously; no absent non-taurine coefficient is imputed. */
+function referenceRules(): string[] {
+  return [
+    ...barfNutrients
+      .filter((n) => n.referencePerKgDay !== null && n.referencePerKgDay > 0)
+      .map((n) => n.id),
+    ...ratios,
+  ];
+}
+
+/** Fixed batch scales make grams, milligrams and IU comparable without letting added water dilute errors. */
+function ruleScale(rule: string, context: BarfPlanContext): number {
+  const reference = barfNutrients.find((n) => n.id === rule)?.referencePerKgDay;
+  const perGram = reference
+    ? reference / 25
+    : rule === 'calciumPhosphorus'
+      ? (1.15 * 70) / 25
+      : rule === 'potassiumSodium'
+        ? (1.35 * 60) / 25
+        : rule === 'water'
+          ? 0.75
+          : 0.25 * 0.25;
+  return Math.max(1e-8, context.meatGrams * perGram);
+}
+
+function balanceErrors(input: BarfInput, context: BarfPlanContext, catalog: BarfCatalog): number[] {
+  const lookup = new Map(catalog.ingredients.map((i) => [i.id, i]));
+  return referenceRules().map(
+    (rule) =>
+      Math.abs(
+        input.items.reduce(
+          (sum, item) =>
+            sum + (coefficient(lookup.get(item.ingredientId)!, rule) ?? 0) * item.quantity,
+          0,
+        ),
+      ) / ruleScale(rule, context),
+  );
+}
+
+function compareBalance(
+  a: BarfInput,
+  b: BarfInput,
+  context: BarfPlanContext,
+  catalog: BarfCatalog,
+): number {
+  const ea = balanceErrors(a, context, catalog),
+    eb = balanceErrors(b, context, catalog);
+  // Scores are re-evaluated after quantity rounding, not trusted from the solver.
+  const square = ea.reduce((s, v) => s + v * v, 0) - eb.reduce((s, v) => s + v * v, 0);
+  if (Math.abs(square) > 1e-6) return square;
+  const worst = Math.max(...ea) - Math.max(...eb);
+  return Math.abs(worst) > 1e-6 ? worst : a.items.length - b.items.length;
+}
+
+/** Simultaneous quantities. Food-base mode optimizes all targets, rather than fixing each product's old dose. */
 function fit(
   input: BarfInput,
   context: BarfPlanContext,
   additions: BarfIngredient[],
   catalog: BarfCatalog,
+  wholeBalance = false,
+  progress?: { limited: boolean },
 ): BarfInput | null {
   const lookup = new Map(catalog.ingredients.map((i) => [i.id, i]));
   const base = context.inventory.filter(
@@ -297,7 +354,6 @@ function fit(
   );
   const stocks = new Map(context.inventory.map((i) => [i.ingredientId, i]));
   const selected = [...base.map((i) => lookup.get(i.ingredientId)!), ...additions];
-  // Never stack full source doses of multiple complete premixes.
   if (selected.filter((i) => i.suggestion === 'premix').length > 1) return null;
   const constraints: Record<string, Constraint> = { batch: { equal: context.meatGrams } };
   const variables: Record<string, Record<string, number>> = {};
@@ -305,52 +361,110 @@ function fit(
     const stock = stocks.get(i.id);
     constraints[`bound:${i.id}`] = stock?.useAll
       ? { equal: stock.quantity }
-      : { min: meatCategory(i) ? 0 : STEP, max: stock?.quantity ?? 100_000 };
-    variables[i.id] = { [`bound:${i.id}`]: 1, batch: meatCategory(i) ? (i.gramsPerUnit ?? 0) : 0 };
+      : { min: wholeBalance || meatCategory(i) ? 0 : STEP, max: stock?.quantity ?? 100_000 };
+    variables[i.id] = {
+      [`bound:${i.id}`]: 1,
+      batch: meatCategory(i) ? (i.gramsPerUnit ?? 0) : 0,
+      mass: stock?.useAll ? 0 : (i.gramsPerUnit ?? 1) / context.meatGrams,
+    };
   }
   for (const target of additions) {
+    // One premix may be used up to its source quantity; it is never stacked or forced at a full dose.
+    if (wholeBalance && target.suggestion !== 'premix') continue;
     const key = `dose:${target.id}`;
-    constraints[key] = { equal: 0 };
+    constraints[key] = wholeBalance ? { max: 0 } : { equal: 0 };
     for (const i of selected) {
       const value = coefficient(i, target.suggestion!, target);
-      if (value === null) {
-        if (stocks.get(i.id)?.useAll || additions.some((a) => a.id === i.id)) return null;
-        constraints[`bound:${i.id}`] = { equal: 0 };
-      } else variables[i.id]![key] = value;
+      if (value === null) return null;
+      variables[i.id]![key] = value;
     }
   }
-  // Among feasible quantities, reduce source-reference shortfalls and ratio residuals.
-  // Unknown objectives are omitted, then explicitly scored as unassessed below.
-  const referenceRules = [
-    ...barfNutrients
-      .filter((n) => n.referencePerKgDay !== null && n.referencePerKgDay > 0)
-      .map((n) => n.id),
-    ...ratios,
-  ];
-  for (const rule of referenceRules) {
+  for (const rule of referenceRules()) {
     const values = selected.map((i) => coefficient(i, rule));
-    if (values.some((v) => v === null)) continue;
+    if (values.some((v) => v === null)) return null;
     const key = `target:${rule}`;
-    const reference = barfNutrients.find((n) => n.id === rule)?.referencePerKgDay;
-    const scale = Math.max(1, (context.meatGrams * (reference ?? 25)) / 25);
     constraints[key] = { equal: 0 };
     selected.forEach((i, index) => {
-      variables[i.id]![key] = values[index]! / scale;
+      variables[i.id]![key] = values[index]! / ruleScale(rule, context);
     });
     variables[`short:${rule}`] = { [key]: 1, error: 1 };
     variables[`excess:${rule}`] = { [key]: -1, error: 1 };
   }
-  const solution = solve(
-    { direction: 'minimize', objective: 'error', constraints, variables },
-    { maxPivots: 2048, checkCycles: true },
+  // Convex least squares: every normalized target contributes, with larger deviations penalized quadratically.
+  // Tangent cuts provide a lower bound; actual squared residuals provide the independent upper bound.
+  let cut = 0;
+  const addCut = (rule: string, point: number) => {
+    const key = `square:${cut++}`;
+    constraints[key] = { max: point * point };
+    variables[`short:${rule}`]![key] = 2 * point;
+    variables[`excess:${rule}`]![key] = 2 * point;
+    variables[`loss:${rule}`]![key] = -1;
+  };
+  if (wholeBalance) {
+    for (const rule of referenceRules()) {
+      variables[`loss:${rule}`] = { squaredError: 1 };
+      for (const point of [0, 0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64]) addCut(rule, point);
+    }
+  }
+
+  // Eliminate fixed food quantities before simplex: their nutrient totals become RHS constants.
+  // This avoids repeatedly pivoting large gram constraints beside trace nutrient coefficients.
+  const fixed = new Map(
+    context.inventory.filter((i) => i.useAll).map((i) => [i.ingredientId, i.quantity]),
   );
+  for (const [id, quantity] of fixed) {
+    for (const [key, value] of Object.entries(variables[id] ?? {})) {
+      const constraint = constraints[key];
+      if (!constraint) continue;
+      const offset = value * quantity;
+      if (constraint.equal !== undefined) constraints[key] = { equal: constraint.equal - offset };
+      else
+        constraints[key] = {
+          ...(constraint.min !== undefined ? { min: constraint.min - offset } : {}),
+          ...(constraint.max !== undefined ? { max: constraint.max - offset } : {}),
+        };
+    }
+    delete variables[id];
+  }
+  const run = (objective: string) =>
+    solve(
+      { direction: 'minimize', objective, constraints, variables },
+      { maxPivots: 8192, checkCycles: true, precision: 1e-8 },
+    );
+  let solution = run(wholeBalance ? 'squaredError' : 'error');
   if (solution.status !== 'optimal') return null;
+  if (wholeBalance) {
+    let best = solution;
+    let bestLoss = Infinity;
+    let converged = false;
+    for (let iteration = 0; iteration < 32; iteration++) {
+      const values = new Map(solution.variables);
+      const errors = referenceRules().map((rule) => ({
+        rule,
+        error: (values.get(`short:${rule}`) ?? 0) + (values.get(`excess:${rule}`) ?? 0),
+      }));
+      const loss = errors.reduce((sum, item) => sum + item.error * item.error, 0);
+      if (loss < bestLoss) {
+        best = solution;
+        bestLoss = loss;
+      }
+      if (loss - solution.result <= 1e-7 * Math.max(1, loss)) {
+        converged = true;
+        break;
+      }
+      errors.forEach(({ rule, error }) => addCut(rule, error));
+      const next = run('squaredError');
+      if (next.status !== 'optimal') break;
+      solution = next;
+    }
+    if (!converged && progress) progress.limited = true;
+    solution = best;
+  }
   const quantities = new Map(solution.variables);
   const items = selected
     .map((i) => {
       const stock = stocks.get(i.id);
-      const solved = quantities.get(i.id) ?? 0;
-      const rounded = Math.round(solved / STEP) * STEP;
+      const rounded = Number((Math.round((quantities.get(i.id) ?? 0) / STEP) * STEP).toFixed(3));
       return {
         ingredientId: i.id,
         quantity: stock?.useAll ? stock.quantity : Math.min(rounded, stock?.quantity ?? 100_000),
@@ -363,23 +477,24 @@ function fit(
   } catch {
     return null;
   }
-  // Recheck every dose after rounding with all products present.
-  for (const target of additions) {
-    const residual = items.reduce(
-      (sum, item) =>
-        sum +
-        coefficient(lookup.get(item.ingredientId)!, target.suggestion!, target)! * item.quantity,
-      0,
-    );
-    const tolerance = items.reduce(
-      (sum, item) =>
-        sum +
-        (Math.abs(coefficient(lookup.get(item.ingredientId)!, target.suggestion!, target)!) *
-          STEP) /
-          2,
-      numericTolerance,
-    );
-    if (!Number.isFinite(residual) || Math.abs(residual) > tolerance) return null;
+  if (!wholeBalance) {
+    for (const target of additions) {
+      const residual = items.reduce(
+        (sum, item) =>
+          sum +
+          coefficient(lookup.get(item.ingredientId)!, target.suggestion!, target)! * item.quantity,
+        0,
+      );
+      const tolerance = items.reduce(
+        (sum, item) =>
+          sum +
+          (Math.abs(coefficient(lookup.get(item.ingredientId)!, target.suggestion!, target)!) *
+            STEP) /
+            2,
+        numericTolerance,
+      );
+      if (!Number.isFinite(residual) || Math.abs(residual) > tolerance) return null;
+    }
   }
   return candidate;
 }
@@ -410,7 +525,33 @@ export function planBarf(
   };
   const baseline = fit(input, context, [], catalog);
   if (!baseline) return { ...empty, checkedCombinations: 1 };
-  const baselineChecks = new Map(checks(baseline, catalog).map((c) => [c.id, c]));
+  if (context.mode === 'supplements') {
+    const regular = pool.filter((i) => i.suggestion !== 'premix');
+    const premixes = pool.filter((i) => i.suggestion === 'premix');
+    const candidates: BarfInput[] = [baseline];
+    const progress = { limited: false };
+    for (const premix of [undefined, ...premixes]) {
+      const candidate = fit(
+        input,
+        context,
+        [...regular, ...(premix ? [premix] : [])],
+        catalog,
+        true,
+        progress,
+      );
+      if (candidate) candidates.push(candidate);
+      else progress.limited = true;
+    }
+    candidates.sort((a, b) => compareBalance(a, b, context, catalog));
+    const best = candidates[0]!;
+    return {
+      ...assessBarfPlan(best, catalog),
+      input: best,
+      status: best === baseline ? 'no-improvement' : 'proposal',
+      checkedCombinations: premixes.length + 2,
+      searchLimited: progress.limited,
+    };
+  }
   type Node = {
     additions: BarfIngredient[];
     input: BarfInput;
@@ -419,18 +560,7 @@ export function planBarf(
   };
   function node(additions: BarfIngredient[], proposed: BarfInput): Node {
     const assessment = assessBarfPlan(proposed, catalog);
-    const score = assessment.checks.reduce((sum, current) => {
-      const before = baselineChecks.get(current.id)!;
-      // Losing data cannot count as correcting a deficit. Newly introduced excess
-      // is a ranking penalty against the source target, not a clinical upper limit.
-      if (current.status === 'missing-data')
-        return sum + before.gap + (before.status === 'missing-data' ? 0 : 0.01);
-      const excess = (c: BarfPlanCheck) =>
-        c.status === 'above-reference' && c.actual !== null
-          ? Math.max(0, c.actual / c.target - 1)
-          : 0;
-      return sum + current.gap + Math.max(0, excess(current) - excess(before));
-    }, 0);
+    const score = assessment.checks.reduce((sum, current) => sum + current.gap, 0);
     return { additions, input: proposed, assessment, score };
   }
   function compare(a: Node, b: Node) {
@@ -442,6 +572,8 @@ export function planBarf(
         a.additions.length - b.additions.length
       );
     return (
+      Math.max(...a.assessment.checks.map((c) => c.gap)) -
+        Math.max(...b.assessment.checks.map((c) => c.gap)) ||
       a.score - b.score ||
       a.assessment.purchases.length - b.assessment.purchases.length ||
       a.additions.length - b.additions.length
@@ -453,13 +585,10 @@ export function planBarf(
   let checked = 1;
   let limited = false;
   const seen = new Set<string>();
-  const maximumDepth =
-    context.mode === 'supplements'
-      ? pool.length
-      : Math.min(
-          pool.length,
-          context.inventory.filter((i) => !i.useAll).length + BARF_NEW_PRODUCT_LIMIT,
-        );
+  const maximumDepth = Math.min(
+    pool.length,
+    context.inventory.filter((i) => !i.useAll).length + BARF_NEW_PRODUCT_LIMIT,
+  );
   // Reserve search capacity for deeper recipes instead of spending it on brands
   // at the first few levels. This is especially important without a purchase cap.
   const beamWidth = Math.max(
@@ -497,8 +626,6 @@ export function planBarf(
     next.sort(compare);
     if (next.length > beamWidth || (depth === maximumDepth - 1 && next.length > 0)) limited = true;
     beam = next.slice(0, beamWidth);
-    // In food-base mode every addition is a purchase; deeper sets cannot use fewer.
-    if (context.mode === 'supplements' && best.assessment.targetsMet) break;
   }
   return {
     ...best.assessment,

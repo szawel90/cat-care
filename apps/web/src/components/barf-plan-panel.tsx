@@ -37,15 +37,19 @@ export function BarfPlanSummary({
       <p className="barf-calculation-note">
         {t(assessment.targetsMet ? 'planSourceTargetsMet' : 'planIncomplete')}
       </p>
-      {!!assessment.taurineZeroAssumption?.ingredientIds.length && (
-        <p className="barf-hint">
-          {t('taurineAssumption', {
-            names: assessment.taurineZeroAssumption.ingredientIds
-              .map((id) => ingredients.find((i) => i.id === id)?.name[locale] ?? id)
-              .join(', '),
-          })}
-        </p>
+      {assessment.missingValuesAssumption && (
+        <p className="barf-hint">{t('allMissingAssumption')}</p>
       )}
+      {!assessment.missingValuesAssumption &&
+        !!assessment.taurineZeroAssumption?.ingredientIds.length && (
+          <p className="barf-hint">
+            {t('taurineAssumption', {
+              names: assessment.taurineZeroAssumption.ingredientIds
+                .map((id) => ingredients.find((i) => i.id === id)?.name[locale] ?? id)
+                .join(', '),
+            })}
+          </p>
+        )}
       <h3>{t('planProducts', { count: assessment.purchases.length })}</h3>
       <ul className="barf-plan-products">
         {input.items.map((item) => {
@@ -88,7 +92,9 @@ export function BarfPlanSummary({
       )}
       <details className="barf-details">
         <summary>{t('planChecks')}</summary>
-        <p className="barf-hint">{t('planCriteria')}</p>
+        <p className="barf-hint">
+          {t(assessment.missingValuesAssumption ? 'planBalanceCriteria' : 'planCriteria')}
+        </p>
         <ul className="barf-plan-checks">
           {assessment.checks.map((check) => (
             <li key={check.id}>
@@ -100,7 +106,13 @@ export function BarfPlanSummary({
                     : (barfNutrients.find((n) => n.id === check.id)?.name[locale] ??
                       t(check.id as 'calciumPhosphorus'))}
               </strong>
-              <span>{t(`planStatus_${check.status}` as 'planStatus_at-reference')}</span>
+              <span>
+                {t(
+                  check.status === 'missing-data' && assessment.missingValuesAssumption
+                    ? 'planUndefinedRatio'
+                    : (`planStatus_${check.status}` as 'planStatus_at-reference'),
+                )}
+              </span>
               <span>
                 {check.actual === null ? '—' : number.format(check.actual)} /{' '}
                 {number.format(check.target)}{' '}
@@ -108,6 +120,9 @@ export function BarfPlanSummary({
                   ? '%'
                   : (barfNutrients.find((n) => n.id === check.id)?.unit ?? '')}
               </span>
+              {assessment.missingValuesAssumption && check.actual !== null && (
+                <span>{t('planDeviation', { value: number.format(check.gap * 100) })}</span>
+              )}
               {check.missingIngredientIds.length > 0 && (
                 <span className="barf-hint">
                   {t('planMissingFrom', {
