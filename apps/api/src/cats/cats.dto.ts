@@ -35,10 +35,15 @@ export class HouseholdUpdateDto {
   @IsOptional()
   @IsObject()
   facts?: Record<string, unknown>;
-  @ApiPropertyOptional({ type: Object, additionalProperties: { type: 'string' } })
+  @ApiPropertyOptional({
+    type: Object,
+    additionalProperties: {
+      oneOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
+    },
+  })
   @IsOptional()
   @IsObject()
-  environment?: Record<string, string>;
+  environment?: Record<string, string | string[]>;
 }
 export class UpdateCatDto {
   @ApiProperty() @IsInt() @Min(1) expectedVersion!: number;
@@ -54,10 +59,15 @@ export class UpdateCatDto {
   @IsString()
   @MaxLength(750000)
   photoDataUrl?: string | null;
-  @ApiPropertyOptional({ type: Object, additionalProperties: { type: 'string' } })
+  @ApiPropertyOptional({
+    type: Object,
+    additionalProperties: {
+      oneOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
+    },
+  })
   @IsOptional()
   @IsObject()
-  attributes?: Record<string, string>;
+  attributes?: Record<string, string | string[]>;
   @ApiPropertyOptional({ type: 'array', items: { type: 'object', additionalProperties: true } })
   @IsOptional()
   @IsArray()
@@ -100,7 +110,13 @@ export class CatResponseDto {
   @ApiProperty() version!: number;
   @ApiProperty() photoVersion!: number;
   @ApiProperty() hasPhoto!: boolean;
-  @ApiProperty({ type: Object, additionalProperties: { type: 'string' } }) attributes!: object;
+  @ApiProperty({
+    type: Object,
+    additionalProperties: {
+      oneOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
+    },
+  })
+  attributes!: object;
   @ApiProperty({ type: 'array', items: { type: 'object', additionalProperties: true } })
   events!: unknown[];
   @ApiProperty({ type: Object, additionalProperties: true }) household!: object;

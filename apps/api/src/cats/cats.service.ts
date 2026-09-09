@@ -368,7 +368,7 @@ export class CatsService {
   }
   async history(ownerId: string, id: string) {
     await this.find(ownerId, id);
-    return this.prisma.portraitRevision.findMany({
+    const rows = await this.prisma.portraitRevision.findMany({
       where: { catId: id },
       orderBy: { revision: 'desc' },
       select: {
@@ -377,8 +377,13 @@ export class CatsService {
         recordedAt: true,
         periodStart: true,
         periodEnd: true,
+        result: true,
       },
     });
+    return rows.map(({ result, ...row }) => ({
+      ...row,
+      profileStatus: (result as unknown as PortraitResult).profile_status,
+    }));
   }
 
   async startPortrait(ownerId: string, id: string, data: StartPortraitDto) {
@@ -449,7 +454,8 @@ export class CatsService {
     if (
       !previous ||
       previous.revision !== data.expectedRevision ||
-      previous.respondentId !== ownerId
+      previous.respondentId !== ownerId ||
+      previous.rulesVersion !== portraitVersion
     )
       throw conflict();
     let updated: ReturnType<typeof applyPortraitAnswer>;

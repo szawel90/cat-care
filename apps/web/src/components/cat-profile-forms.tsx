@@ -4,6 +4,9 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   profileFields,
+  isChoiceField,
+  profileChoices,
+  toggleProfileChoice,
   type CatAttributes,
   type CatEvent,
   type CatRecord,
@@ -200,20 +203,56 @@ export function CatAreaForm({
   useDirty(draft.dirty, onDirty);
   const labels = useCatMessages().fields as Record<string, string>;
   const optionLabels = useCatMessages().options as Record<string, string>;
+  const choiceLabels = useCatMessages().choiceLabels as Record<string, string>;
   function field(key: ProfileField) {
     const shared = area === 'home' && key !== 'access';
     const values = shared ? draft.value.environment : draft.value.attributes;
     const value = values[key] ?? '';
-    const set = (value: string) =>
+    const set = (value: string | string[]) =>
       draft.update({
         ...draft.value,
         [shared ? 'environment' : 'attributes']: { ...values, [key]: value },
       });
+    if (isChoiceField(key)) {
+      const config = profileChoices[key];
+      const selected = Array.isArray(value) ? value : [value];
+      const known = [...config.options, 'deferred'] as readonly string[];
+      const legacy = typeof value === 'string' && value && !known.includes(value);
+      return (
+        <fieldset className="cat-choice-field" key={key}>
+          <legend>{labels[key]}</legend>
+          {legacy && <p className="hint">{t('legacyText', { value })}</p>}
+          <div className="cat-choice-grid">
+            {[...config.options, 'deferred'].map((option) => (
+              <label key={option} className="cat-answer-option">
+                <input
+                  type={config.multiple ? 'checkbox' : 'radio'}
+                  name={key}
+                  value={option}
+                  checked={selected.includes(option)}
+                  onChange={() =>
+                    set(
+                      config.multiple
+                        ? toggleProfileChoice(
+                            Array.isArray(value) ? value : known.includes(value) ? [value] : [],
+                            option,
+                          )
+                        : option,
+                    )
+                  }
+                />
+                <span>{option === 'deferred' ? t('defer') : choiceLabels[option]}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      );
+    }
     const choices =
       key === 'sex'
-        ? ['female', 'male', 'unknown']
+        ? ['female', 'male', 'unknown', 'deferred']
         : key === 'neutered'
-          ? ['yes', 'no', 'unknown']
+          ? ['yes', 'no', 'unknown', 'deferred']
           : null;
     return (
       <div className="field" key={key}>
@@ -222,7 +261,7 @@ export function CatAreaForm({
           <select
             className="cat-select"
             id={'cat-field-' + key}
-            value={value}
+            value={typeof value === 'string' ? value : ''}
             onChange={(event) => set(event.target.value)}
           >
             <option value="">{t('unknown')}</option>
@@ -238,9 +277,14 @@ export function CatAreaForm({
             id={'cat-field-' + key}
             rows={key === 'age' || key === 'homeSince' ? 1 : 3}
             maxLength={1500}
-            value={value}
+            value={typeof value === 'string' && value !== 'deferred' ? value : ''}
             onChange={(event) => set(event.target.value)}
           />
+        )}
+        {!choices && !key.endsWith('Notes') && (
+          <Button type="button" variant="ghost" onClick={() => set('deferred')}>
+            {value === 'deferred' ? t('pending') : t('defer')}
+          </Button>
         )}
       </div>
     );
@@ -317,8 +361,8 @@ export function CatAreaForm({
                 }
               >
                 {(key === 'totalCats'
-                  ? ['unknown', 'one', 'two', 'three_or_more']
-                  : ['unknown', 'yes', 'no']
+                  ? ['unknown', 'one', 'two', 'three_or_more', 'deferred']
+                  : ['unknown', 'yes', 'no', 'deferred']
                 ).map((option) => (
                   <option value={option} key={option}>
                     {optionLabels[option]}
@@ -415,12 +459,13 @@ export function CatHouseholdForm({
 }: FormCallbacks & { cat: CatRecord }) {
   const t = useTranslations('Cats'),
     context = useCats();
-  const draft = useDraft('home-link:' + cat.id, { home: '', version: cat.version });
+  const draft = useDraft('home-link:' + cat.id, { home: 'keep', version: cat.version });
   const [busy, setBusy] = useState(false),
     [error, setError] = useState<ReturnType<typeof catError> | ''>('');
   useDirty(draft.dirty, onDirty);
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (draft.value.home === 'keep') return;
     setBusy(true);
     onBusy(true);
     setError('');
@@ -455,6 +500,7 @@ export function CatHouseholdForm({
             value={draft.value.home}
             onChange={(event) => draft.update({ ...draft.value, home: event.target.value })}
           >
+            <option value="keep">{t('keepHome')}</option>
             <option value="">{t('separateHome')}</option>
             {context.cats
               .filter((other) => other.id !== cat.id)
@@ -467,7 +513,9 @@ export function CatHouseholdForm({
         </div>
         <p className="hint">{t('historyHelp')}</p>
         <div className="cat-actions">
-          <Button type="submit">{busy ? t('saving') : t('save')}</Button>
+          <Button type="submit" disabled={draft.value.home === 'keep'}>
+            {busy ? t('saving') : t('save')}
+          </Button>
           <Button type="button" variant="outline" onClick={onCancel}>
             {t('cancel')}
           </Button>

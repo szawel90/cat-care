@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 340px) minmax(0, 1fr);
   gap: 20px;
-  min-height: 112px;
+  min-height: 80px;
 }
 .has-cat-picker > .user-menu-trigger {
   justify-self: end;
@@ -15,7 +15,7 @@
 .cat-picker.cat-picker {
   width: 100%;
   height: auto;
-  min-height: 80px;
+  min-height: 56px;
   padding: 10px 16px;
   gap: 12px;
   justify-content: flex-start;
@@ -180,8 +180,8 @@
 }
 .cat-profile-heading {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 40px;
+  grid-template-columns: minmax(230px, 1fr) minmax(0, 2fr);
+  gap: 24px;
   align-items: center;
   margin: 26px 0;
 }
@@ -534,12 +534,163 @@
   height: auto;
   min-height: 44px;
 }
+.cat-area-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.cat-area-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  min-height: 104px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.cat-area-button > svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+.cat-area-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.cat-area-copy > span {
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cat-area-button:disabled {
+  background: var(--ui-secondary);
+  cursor: default;
+  color: var(--muted);
+}
+.cat-area-button:disabled svg {
+  color: var(--muted);
+}
+.cat-area-button:not(:disabled):hover,
+button.cat-answer-option:not(:disabled):hover {
+  border-color: var(--accent);
+}
+.cat-area-button:focus-visible,
+button.cat-answer-option:focus-visible {
+  outline: 3px solid var(--ui-ring);
+  outline-offset: 3px;
+}
+.cat-icon-button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px;
+  flex-shrink: 0;
+}
+.cat-identity {
+  gap: 12px;
+}
+.cat-identity .cat-avatar-large {
+  width: 72px;
+  height: 72px;
+  flex-basis: 72px;
+}
+.cat-identity h2,
+.cat-identity p {
+  margin: 4px 0;
+}
+.cat-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cat-trait {
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: var(--ui-secondary);
+  color: var(--ui-primary-hover);
+}
+.cat-portrait-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 18px 0;
+}
+.cat-profile-fold {
+  border-top: 1px solid var(--line);
+  padding: 4px 0;
+}
+.cat-profile-footer {
+  margin-top: 12px;
+  padding-top: 8px;
+}
+.cat-question-title {
+  scroll-margin-top: 20px;
+}
+.cat-question-title:focus {
+  outline: none;
+}
+button.cat-answer-option {
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  color: var(--ink);
+}
+button.cat-answer-option:disabled {
+  cursor: wait;
+}
+.cat-question-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.cat-question-footer button {
+  min-width: 0;
+  flex-shrink: 1;
+  min-height: 44px;
+  white-space: normal;
+  height: auto;
+  padding: 8px;
+  text-align: center;
+}
+.cat-question-footer .cat-defer {
+  color: var(--ui-primary-hover);
+}
+.cat-form .cat-choice-field {
+  margin: 0 0 24px;
+}
+.cat-choice-field legend {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.cat-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.cat-home-link {
+  max-width: 720px;
+  margin: 20px auto;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+}
+@media (min-width: 741px) and (max-width: 1000px) {
+  .cat-area-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 @media (max-width: 740px) {
   .site-header.has-cat-picker {
     grid-template-columns: 44px minmax(0, 1fr) 44px;
     gap: 8px;
     padding: 10px 16px;
-    min-height: 96px;
+    min-height: 80px;
   }
   .has-cat-picker .brand {
     font-size: 0;
@@ -556,7 +707,7 @@
   .cat-picker.cat-picker {
     padding: 8px;
     gap: 8px;
-    min-height: 72px;
+    min-height: 56px;
   }
   .cat-picker .cat-avatar {
     width: 42px;
@@ -627,5 +778,15 @@
   }
   .cat-answer-option {
     padding: 12px;
+  }
+  .cat-area-button {
+    min-height: 84px;
+    padding: 12px;
+  }
+  .cat-area-grid {
+    gap: 8px;
+  }
+  .cat-choice-grid {
+    grid-template-columns: 1fr;
   }
 }

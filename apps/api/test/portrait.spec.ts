@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
-  applyPortraitAnswer,
-  calculatePortrait,
+  applyPortraitAnswerV1 as applyPortraitAnswer,
+  calculatePortraitV1 as calculatePortrait,
   householdAnswer,
-  nextQuestion,
+  nextQuestionV1 as nextQuestion,
   unknownHousehold,
   validateAttributes,
   type PortraitAnswers,

@@ -3,7 +3,14 @@ import { useCatMessages } from './cat-messages';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
-import type { CatAttributes, CatEvent, HouseholdRecord, PortraitRecord } from '@cat-care/shared';
+import {
+  groupPortraitCycles,
+  type PortraitCycleRevision,
+  type CatAttributes,
+  type CatEvent,
+  type HouseholdRecord,
+  type PortraitRecord,
+} from '@cat-care/shared';
 import { catRequest } from '@/lib/cats-api';
 import { CatPortraitResult } from './cat-portrait-result';
 import { Button } from './ui/button';
@@ -27,7 +34,7 @@ type ProfileHistory = {
   >;
   homes: Array<Version & HouseholdRecord>;
 };
-type Observation = Pick<PortraitRecord, 'revision' | 'periodStart' | 'periodEnd' | 'recordedAt'>;
+type Observation = PortraitCycleRevision;
 export function CatHistory({
   catId,
   kind,
@@ -66,8 +73,10 @@ export function CatHistory({
       new Date(value),
     );
   const changes = useCatMessages().changes as Record<string, string>;
+  const statusLabels = useCatMessages().statuses as Record<string, string>;
   const fields = useCatMessages().fields as Record<string, string>,
     options = useCatMessages().options as Record<string, string>;
+  const choices = useCatMessages().choiceLabels as Record<string, string>;
   const entries = (data: object) =>
     Object.entries(data)
       .filter(([, value]) => value)
@@ -77,7 +86,9 @@ export function CatHistory({
           <dd>
             {['sex', 'neutered', 'children', 'dogs', 'other_animals', 'totalCats'].includes(key)
               ? (options[String(value)] ?? String(value))
-              : String(value)}
+              : (Array.isArray(value) ? value : [value])
+                  .map((item) => choices[String(item)] ?? options[String(item)] ?? String(item))
+                  .join(', ')}
           </dd>
         </div>
       ));
@@ -157,19 +168,30 @@ export function CatHistory({
       {observations && (
         <>
           <div className="cat-revisions">
-            {observations.map((row) => (
-              <Button
-                key={row.revision}
-                variant={selected?.revision === row.revision ? 'default' : 'outline'}
-                onClick={() => {
-                  void catRequest<PortraitRecord>(`/${catId}/portrait/revisions/${row.revision}`)
-                    .then(setSelected)
-                    .catch(() => setError(true));
-                }}
-              >
-                {t('version', { number: row.revision })} · {stamp(row.recordedAt)}
-              </Button>
-            ))}
+            {groupPortraitCycles(observations).map((cycle) => {
+              const row = cycle.latest;
+              return (
+                <Button
+                  key={row.revision}
+                  variant={selected?.revision === row.revision ? 'default' : 'outline'}
+                  onClick={() => {
+                    void catRequest<PortraitRecord>(`/${catId}/portrait/revisions/${row.revision}`)
+                      .then(setSelected)
+                      .catch(() => setError(true));
+                  }}
+                >
+                  <span>
+                    <strong>{t('cycle', { number: cycle.number })}</strong>
+                    <br />
+                    {t('cycleStarted', { date: stamp(cycle.startedAt) })} ·{' '}
+                    {t('cycleUpdated', { date: stamp(cycle.updatedAt) })}
+                    {row.profileStatus && (
+                      <span className="hint"> · {statusLabels[row.profileStatus]}</span>
+                    )}
+                  </span>
+                </Button>
+              );
+            })}
           </div>
           {selected && (
             <>

@@ -1,6 +1,6 @@
 'use client';
 import { useCatMessages } from './cat-messages';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { variationAxis, type CatRecord, type PortraitRecord } from '@cat-care/shared';
 import { catError, catRequest } from '@/lib/cats-api';
@@ -143,6 +143,12 @@ export function CatQuestionForm({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState<ReturnType<typeof catError> | ''>('');
   const dirty = JSON.stringify(initial) !== JSON.stringify(draft.answer);
+  const submitting = useRef(false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  useLayoutEffect(() => {
+    heading.current?.focus({ preventScroll: true });
+    heading.current?.scrollIntoView({ block: 'start' });
+  }, [questionId]);
   useEffect(() => {
     onDirty(dirty);
     return () => onDirty(false);
@@ -170,6 +176,8 @@ export function CatQuestionForm({
     select(values);
   }
   async function save(answer: string | string[]) {
+    if (submitting.current) return;
+    submitting.current = true;
     setBusy(true);
     onBusy(true);
     setError('');
@@ -184,6 +192,7 @@ export function CatQuestionForm({
     } catch (failure) {
       setError(catError(failure));
     } finally {
+      submitting.current = false;
       setBusy(false);
       onBusy(false);
     }
@@ -226,9 +235,12 @@ export function CatQuestionForm({
           ? t('clarification')
           : t('questionCount', { number: Number(questionId.slice(1)) })}
       </p>
-      <fieldset disabled={busy}>
-        <legend className="cat-question-title">{title}</legend>
+      <h2 className="cat-question-title" ref={heading} tabIndex={-1} id="question-title">
+        {title}
+      </h2>
+      <fieldset disabled={busy} aria-labelledby="question-title">
         <p id="question-help">{copy.questions[questionId]!.help}</p>
+        <p className="hint">{t(questionId === 'Q02' ? 'summaryChoices' : 'autoAdvance')}</p>
         {error && <Feedback tone="error">{t(`errors.${error}`)}</Feedback>}
         {questionId === 'F_TARGET' ? (
           <div className="field">
@@ -248,57 +260,63 @@ export function CatQuestionForm({
             {household.members
               .filter((member) => member.id !== cat.id)
               .map((member) => (
-                <label className="cat-answer-option" key={member.id}>
-                  <input
-                    type="radio"
-                    name="target"
-                    checked={draft.answer === 'cat:' + member.id}
-                    onChange={() => select('cat:' + member.id)}
-                  />
+                <button
+                  type="button"
+                  className="cat-answer-option"
+                  key={member.id}
+                  onClick={() => void save('cat:' + member.id)}
+                >
                   <span>{member.name}</span>
-                </label>
+                </button>
               ))}
-            <label className="cat-answer-option">
-              <input
-                type="radio"
-                name="target"
-                checked={draft.answer === 'unknown'}
-                onChange={() => select('unknown')}
-              />
-              <span>{t('targetUnknown')}</span>
-            </label>
           </div>
         ) : (
           <div className="cat-answer-options" aria-describedby="question-help">
-            {options.map(([id, label]) => (
-              <label key={id} className="cat-answer-option">
-                <input
-                  type={questionId === 'Q02' ? 'checkbox' : 'radio'}
-                  name="answer"
-                  value={id}
-                  checked={
-                    Array.isArray(draft.answer) ? draft.answer.includes(id) : draft.answer === id
-                  }
-                  onChange={() => (questionId === 'Q02' ? toggle(id) : select(id))}
-                />
-                <span>{label}</span>
-              </label>
-            ))}
+            {options.map(([id, label]) =>
+              questionId !== 'Q02' ? (
+                <button
+                  key={id}
+                  type="button"
+                  className="cat-answer-option"
+                  onClick={() => void save(id)}
+                >
+                  <span>{label}</span>
+                </button>
+              ) : (
+                <label key={id} className="cat-answer-option">
+                  <input
+                    type={questionId === 'Q02' ? 'checkbox' : 'radio'}
+                    name="answer"
+                    value={id}
+                    checked={
+                      Array.isArray(draft.answer) ? draft.answer.includes(id) : draft.answer === id
+                    }
+                    onChange={() => (questionId === 'Q02' ? toggle(id) : select(id))}
+                  />
+                  <span>{label}</span>
+                </label>
+              ),
+            )}
           </div>
         )}
-        <div className="cat-actions">
-          <Button type="submit" disabled={!draft.answer.length || draft.answer === 'deferred'}>
-            {busy ? t('saving') : t('saveAndContinue')}
+        {(questionId === 'Q02' || questionId === 'F_TARGET') && (
+          <div className="cat-actions">
+            <Button type="submit" disabled={!draft.answer.length || draft.answer === 'deferred'}>
+              {busy ? t('saving') : t('saveAndContinue')}
+            </Button>
+          </div>
+        )}
+        <div className="cat-question-footer">
+          <Button type="button" variant="ghost" onClick={onCancel}>
+            ← {t('back')}
           </Button>
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
+            className="cat-defer"
             onClick={() => void save(questionId === 'Q02' ? ['deferred'] : 'deferred')}
           >
-            {t('defer')}
-          </Button>
-          <Button type="button" variant="ghost" onClick={onCancel}>
-            {t('back')}
+            {t('defer')} →
           </Button>
         </div>
       </fieldset>

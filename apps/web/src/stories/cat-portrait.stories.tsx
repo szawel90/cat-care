@@ -3,7 +3,7 @@ import { expect, fn, within } from 'storybook/test';
 import { CatPortraitResult } from '../components/cat-portrait-result';
 import { observation } from './cat-fixtures';
 const meta = {
-  title: 'Cats/Portrait and intersections',
+  title: 'Cats/Portrait descriptions',
   component: CatPortraitResult,
   args: { portrait: observation(), onEdit: fn() },
   decorators: [
@@ -26,18 +26,20 @@ export const DeferredAnswer: Story = {
   },
 };
 export const RangeWithoutMidpoint: Story = {
-  args: { portrait: observation({ Q04: 'never', Q05: 'almost_always' }) },
+  args: { portrait: observation({ Q04: 'never', Q05: 'joins_play' }) },
   play: async ({ canvasElement }) => {
-    const scale = canvasElement.querySelector('.cat-scale-card')!;
-    await expect(scale.querySelector('.cat-scale-range')).not.toBeNull();
-    await expect(scale.querySelector('.cat-scale-point')).toBeNull();
+    await expect(canvasElement.querySelector('[data-trait="activity"]')).toHaveAttribute(
+      'data-band',
+      'varied',
+    );
+    await expect(canvasElement.querySelector('.cat-scale-track')).toBeNull();
   },
 };
 export const UnobservedSpace: Story = {
-  args: { portrait: observation({ Q15: 'unknown', Q16: 'unknown' }) },
+  args: { portrait: observation({ Q15: 'deferred', Q16: 'deferred' }) },
   play: async ({ canvasElement }) => {
-    const map = canvasElement.querySelectorAll('.cat-intersection')[3]!;
-    await expect(map.querySelector('.cat-map-mark')).toBeNull();
+    await expect(canvasElement.querySelector('[data-trait="height"]')).toBeNull();
+    await expect(canvasElement.querySelector('[data-trait="openness"]')).toBeNull();
   },
 };
 export const ContextPolishDark: Story = {

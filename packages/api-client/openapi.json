@@ -984,7 +984,17 @@
           "attributes": {
             "type": "object",
             "additionalProperties": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
             }
           },
           "events": {
@@ -1062,7 +1072,17 @@
           "environment": {
             "type": "object",
             "additionalProperties": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
             }
           }
         },
@@ -1086,7 +1106,17 @@
           "attributes": {
             "type": "object",
             "additionalProperties": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
             }
           },
           "events": {

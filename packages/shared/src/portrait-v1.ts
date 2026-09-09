@@ -1,7 +1,6 @@
-import { describePortrait } from './portrait-description';
-import { portraitAxes, portraitQuestions, portraitFollowups } from './portrait-catalog';
+import { portraitAxes, portraitQuestions, portraitFollowups } from './portrait-catalog-v1';
 
-export const portraitVersion = 'cat-portrait-scenarios-2';
+export const portraitVersion = 'cat-portrait-draft-1';
 export type PortraitAnswers = Record<string, string | string[]>;
 export type PortraitFollowups = Record<string, string>;
 export type AxisId = keyof typeof portraitAxes;
@@ -141,7 +140,7 @@ export function summarizeAxis(answers: PortraitAnswers, axis: AxisId): AxisResul
     scope: null,
     pending_questions: [],
   };
-  if (items.some((item) => item.answer === 'contextual' || item.answer === 'still_tense')) {
+  if (items.some((item) => item.answer === 'contextual')) {
     result.status = 'context_dependent';
     result.reasons.push('owner_reported_context_variation');
   } else if (values.length) {
@@ -330,15 +329,6 @@ export function calculatePortrait(
     );
   return {
     version: portraitVersion,
-    description: describePortrait(
-      axes,
-      answers,
-      relationshipNote,
-      deferred.length > 0 ||
-        unresolved ||
-        relevantBase.some((key) => !Object.hasOwn(answers, key)) ||
-        nextQuestion(answers, followups, issuedFollowups) !== null,
-    ),
     axes,
     vector: Object.fromEntries(axisIds.map((axis) => [axis, axes[axis].point])),
     headline,

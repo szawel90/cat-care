@@ -91,7 +91,10 @@ test('creates photo and name-only profiles, reuses a home, preserves observation
   await page
     .getByRole('button', { name: `${labels.edit}: ${labels.areas.preferences}`, exact: true })
     .click();
-  await page.getByLabel(labels.fields.games).fill('Rolling a soft ball');
+  await page
+    .getByRole('group', { name: labels.fields.games, exact: true })
+    .getByRole('checkbox', { name: labels.choiceLabels.balls, exact: true })
+    .check();
   await page.getByRole('button', { name: labels.save, exact: true }).click();
   const picker = page.getByRole('button', { name: /^Choose a cat:/ });
   await picker.click();
@@ -115,87 +118,86 @@ test('creates photo and name-only profiles, reuses a home, preserves observation
   await expect(page.locator('.cat-question')).toBeVisible();
   const portrait = async () => (await page.request.get(`/api/cats/${miloId}/portrait`)).json();
   expect((await portrait()).answers.Q02).toEqual(['children', 'one_cat']);
+  const questions = labels.questionnaire.questions as Record<
+    string,
+    { text: string; options: Record<string, string> }
+  >;
   async function answer(id: string, value: string) {
     const before = await portrait();
-    const questions = labels.questionnaire.questions as Record<
-      string,
-      { options: Record<string, string> }
-    >;
     await page
       .locator('.cat-question')
-      .getByRole('radio', { name: questions[id]!.options[value], exact: true })
-      .check();
-    await page.getByRole('button', { name: labels.saveAndContinue, exact: true }).click();
+      .getByRole('button', { name: questions[id]!.options[value], exact: true })
+      .click();
     await expect.poll(async () => (await portrait()).revision).toBeGreaterThan(before.revision);
-    await expect(page.locator('.cat-question fieldset')).toBeEnabled();
   }
   await answer('Q01', 'usual');
   await answer('Q03', 'none');
-  await page.getByRole('button', { name: labels.defer, exact: true }).click();
-  await expect(page.locator('.cat-question legend')).toContainText('calmly offer');
-  await answer('Q05', 'almost_always');
-  await page.getByRole('button', { name: labels.back, exact: true }).click();
-  await expect(page.locator('.cat-pending')).toBeVisible();
-  const deferred = await portrait();
-  expect(deferred.answers.Q04).toBe('deferred');
-  await page.locator('.cat-pending').getByRole('button', { name: labels.changeAnswer }).click();
-  await page
-    .locator('.cat-question')
-    .getByRole('radio', { name: labels.questionnaire.questions.Q04.options.never, exact: true })
-    .check();
-  await page.getByRole('button', { name: labels.saveAndContinue, exact: true }).click();
+  await page.getByRole('button', { name: labels.defer }).click();
+  await expect(page.locator('.cat-question-title')).toHaveText(questions.Q05!.text);
+  await answer('Q05', 'joins_play');
+  await expect(page.locator('.cat-question-title')).toHaveText(questions.Q06!.text);
+  await expect(page.locator('.cat-question-title')).toBeFocused();
+  const position = await page.locator('.cat-question-title').boundingBox();
+  expect(position!.y).toBeGreaterThanOrEqual(0);
+  expect(position!.y).toBeLessThan(100);
+  if (info.project.name === 'mobile') await page.setViewportSize({ width: 320, height: 844 });
+  await accessible(page);
+  await answer('Q06', 'rests');
+  await page.getByRole('button', { name: labels.defer }).click();
+  await expect(page.locator('.cat-question-title')).toHaveText(questions.Q08!.text);
+  const choices: Record<string, string> = {
+    Q08: 'approaches_contact',
+    Q09: 'close',
+    Q10: 'initiates_greeting',
+    Q11: 'stays',
+    Q12: 'investigates',
+    Q13: 'explores',
+    Q14: 'brief_sniff',
+    Q15: 'elevated',
+    Q16: 'open',
+    Q17: 'both',
+    Q18: 'settles',
+  };
+  for (let count = 0; count < 14; count++) {
+    const state = await portrait();
+    const id = state.result.next_question?.id;
+    if (!id) break;
+    expect(choices[id]).toBeTruthy();
+    await answer(id, choices[id]!);
+  }
   await expect(page.locator('.cat-identity h2')).toHaveText('Milo');
-  const current = await portrait();
-  expect(current.result.axes.activity.point).toBeNull();
-  expect(current.result.axes.activity.range).toEqual([0, 4]);
+  const deferred = await portrait();
+  expect(deferred.result.pending.map((item: { id: string }) => item.id)).toEqual(['Q04', 'Q07']);
+  await page.getByRole('button', { name: labels.continuePortrait, exact: true }).click();
+  await expect(page.locator('.cat-question-title')).toHaveText(questions.Q04!.text);
+  // A failed save stays on the same question and can be retried.
+  await page.route(`**/api/cats/${miloId}/portrait`, async (route) => {
+    if (route.request().method() === 'PATCH')
+      await route.fulfill({ status: 503, contentType: 'application/json', body: '{}' });
+    else await route.continue();
+  });
+  await page.getByRole('button', { name: questions.Q04!.options.often, exact: true }).click();
+  await expect(page.locator('.cat-question').getByRole('alert')).toBeVisible();
+  await expect(page.locator('.cat-question-title')).toHaveText(questions.Q04!.text);
+  await page.unroute(`**/api/cats/${miloId}/portrait`);
+  await answer('Q04', 'often');
+  // Regression: continuation must skip answered Q05 and Q06.
+  await expect(page.locator('.cat-question-title')).toHaveText(questions.Q07!.text);
+  await answer('Q07', 'continues');
+  await expect(page.locator('.cat-identity h2')).toHaveText('Milo');
+  expect((await portrait()).result.pending).toEqual([]);
   const old = await (
     await page.request.get(`/api/cats/${miloId}/portrait/revisions/${deferred.revision}`)
   ).json();
   expect(old.answers.Q04).toBe('deferred');
   expect(old.isCurrent).toBe(false);
   expect(old.supersededAt).not.toBeNull();
-  await page.getByRole('button', { name: labels.continuePortrait, exact: true }).click();
-  const choices: Record<string, string> = {
-    Q06: 'rarely',
-    Q07: 'rarely',
-    Q08: 'often',
-    Q09: 'often',
-    Q10: 'often',
-    Q11: 'never',
-    Q12: 'often',
-    Q13: 'often',
-    Q14: 'sometimes',
-    Q15: 'elevated',
-    Q16: 'open',
-    Q17: 'both',
-    Q18: 'almost_always',
-    F_VARIATION: 'different_contexts',
-  };
-  for (let count = 0; count < 16; count++) {
-    const state = await portrait();
-    const id = state.result.next_question?.id;
-    if (!id) break;
-    const value = choices[id];
-    expect(value).toBeTruthy();
-    await expect(page.locator('.cat-question .cat-eyebrow')).toHaveText(
-      id.startsWith('F_') ? labels.clarification : 'Question ' + Number(id.slice(1)),
-    );
-    const before = state.revision;
-    const questions = labels.questionnaire.questions as Record<
-      string,
-      { options: Record<string, string> }
-    >;
-    await page
-      .locator('.cat-question')
-      .getByRole('radio', { name: questions[id]!.options[value!], exact: true })
-      .check();
-    await page.getByRole('button', { name: labels.saveAndContinue, exact: true }).click();
-    await expect.poll(async () => (await portrait()).revision).toBeGreaterThan(before);
-  }
-  await expect(page.locator('.cat-identity h2')).toHaveText('Milo');
-  expect((await portrait()).result.next_question).toBeNull();
-  await expect(page.locator('.cat-scale-card')).toHaveCount(9);
-  await expect(page.locator('.cat-intersection')).toHaveCount(4);
+  await expect(page.locator('.cat-scale-card')).toHaveCount(0);
+  await expect(page.locator('.cat-intersection')).toHaveCount(0);
+  await expect(page.locator('.cat-area-button')).toHaveCount(6);
+  await expect(page.getByRole('button', { name: labels.areas.health, exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: labels.changeHome, exact: true })).toHaveCount(0);
+  await expect(page.locator('.cat-trait')).toHaveCount(3);
   await accessible(page);
   await page.screenshot({ path: info.outputPath('cat-profile.png'), fullPage: true });
   await page.getByRole('button', { name: labels.editIdentity, exact: true }).click();
@@ -213,7 +215,13 @@ test('creates photo and name-only profiles, reuses a home, preserves observation
   await picker.click();
   await page.getByRole('menuitem', { name: 'Milo', exact: true }).click();
   await expect(page.locator('.cat-identity h2')).toHaveText('Milo');
+  await page
+    .locator('.cat-profile-fold')
+    .filter({ has: page.locator('summary', { hasText: labels.history }) })
+    .locator('summary')
+    .click();
   await page.getByRole('button', { name: labels.portraitHistory, exact: true }).click();
+  await expect(page.locator('.cat-revisions button')).toHaveCount(1);
   await page.locator('.cat-revisions button').last().click();
   await expect(page.locator('.cat-portrait-result')).toBeVisible();
   await page.getByRole('button', { name: labels.closeHistory }).click();
@@ -221,8 +229,12 @@ test('creates photo and name-only profiles, reuses a home, preserves observation
   await page.getByRole('button', { name: labels.start, exact: true }).click();
   await expect(page.locator('.cat-question')).toBeVisible();
   expect((await portrait()).answers).toEqual({ Q02: ['children', 'one_cat'] });
-  await page.getByRole('button', { name: labels.back, exact: true }).click();
-  await page.getByRole('button', { name: labels.changeHome, exact: true }).click();
+  await page.getByRole('button', { name: labels.back }).click();
+  await page
+    .getByRole('button', { name: `${labels.edit}: ${labels.areas.home}`, exact: true })
+    .click();
+  await page.locator('.cat-home-link summary').click();
+  await page.getByRole('button', { name: labels.homeChoice, exact: true }).click();
   await page.getByLabel(labels.homeChoice).selectOption('');
   await page.getByRole('button', { name: labels.save, exact: true }).click();
   await expect(page.locator('.cat-identity h2')).toHaveText('Milo');
@@ -230,7 +242,12 @@ test('creates photo and name-only profiles, reuses a home, preserves observation
     milo.household.id,
   );
   expect((await portrait()).contextChangedAt).not.toBeNull();
-  await page.getByRole('button', { name: labels.history, exact: true }).click();
+  await page
+    .locator('.cat-profile-fold')
+    .filter({ has: page.locator('summary', { hasText: labels.history }) })
+    .locator('summary')
+    .click();
+  await page.getByRole('button', { name: labels.catHistory, exact: true }).click();
   await expect(page.locator('.cat-history details').first()).toBeVisible();
   await page.locator('.cat-history details').first().locator('summary').click();
   await accessible(page);

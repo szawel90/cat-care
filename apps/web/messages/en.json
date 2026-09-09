@@ -251,11 +251,11 @@
     "periodEnd": "To",
     "periodHelp": "Choose up to 28 days. If you have known the cat for less time, use that shorter period.",
     "start": "Start observation",
-    "newObservation": "New observation period",
+    "newObservation": "Start a new interview",
     "newObservationHelp": "A new period starts a separate portrait. Earlier answers and results remain in the history.",
     "saveAnswer": "Save answer",
     "saveAndContinue": "Save and continue",
-    "defer": "I will observe and answer later",
+    "defer": "Answer later",
     "pending": "Awaiting observation",
     "answerPending": "Complete answer",
     "pendingHelp": "Your portrait is already available. Return when you can describe behavior from the stated period. For later observations, start a new period.",
@@ -296,7 +296,7 @@
     "eventDetails": "Additional details",
     "addEvent": "Add an event",
     "removeEvent": "Withdraw event from the current description",
-    "saved": "A new version has been saved.",
+    "saved": "Saved.",
     "signIn": "Sign in to open your cat profile.",
     "missing": "This profile is not available on your account.",
     "areas": {
@@ -337,7 +337,10 @@
       "children": "Children living in or regularly visiting the home",
       "dogs": "Dogs",
       "other_animals": "Other animals",
-      "totalCats": "All cats in the home, including those without profiles"
+      "totalCats": "All cats in the home, including those without profiles",
+      "homeNotes": "Additional details · optional",
+      "routineNotes": "Additional details · optional",
+      "preferenceNotes": "Additional details · optional"
     },
     "options": {
       "yes": "Yes",
@@ -347,7 +350,8 @@
       "male": "Male",
       "one": "One",
       "two": "Two",
-      "three_or_more": "At least three"
+      "three_or_more": "At least three",
+      "deferred": "Answer later"
     },
     "statuses": {
       "not_started": "Portrait not started",
@@ -398,6 +402,322 @@
       "member_renamed": "Household cat renamed"
     },
     "questionnaire": {
+      "questions": {
+        "Q01": {
+          "text": "How well do the last four weeks reflect the cat’s usual behavior?",
+          "help": "Describe the last four weeks, or the shorter time you have known the cat. Do not mix behavior before a change with behavior afterwards.",
+          "options": {
+            "usual": "I have known the cat for at least four weeks; this period is usual for them",
+            "changed": "Behavior or living conditions have noticeably changed recently",
+            "health": "This is a period of illness, treatment or noticeable mobility difficulties",
+            "short": "I have known the cat for less than four weeks",
+            "deferred": "Answer later"
+          }
+        },
+        "Q02": {
+          "text": "Who, apart from adult caregivers, lives with the cat or regularly visits the home?",
+          "help": "Select the relevant groups. Children’s names, exact ages and personal details are not needed.",
+          "options": {
+            "children": "Children",
+            "one_cat": "One other cat",
+            "multiple_cats": "At least two other cats",
+            "dogs": "Dogs",
+            "other_animals": "Other animals, such as rabbits, birds or rodents",
+            "none": "None of these groups",
+            "deferred": "Answer later"
+          }
+        },
+        "Q03": {
+          "text": "Whose presence is most clearly associated with a noticeable difference in the cat’s behavior?",
+          "help": "Compare only naturally occurring situations. A difference may also mean more play or contact. Choose several groups if it concerns more than one.",
+          "options": {
+            "none": "I have not noticed such a difference",
+            "children": "Children",
+            "cats": "Another cat or cats",
+            "dogs": "Dogs",
+            "other_animals": "Other animals, such as rabbits, birds or rodents",
+            "adults": "A particular adult or visitors",
+            "several": "Several groups or changes",
+            "deferred": "Answer later"
+          }
+        },
+        "Q04": {
+          "text": "How often does the cat start playing on their own when awake and with toys available?",
+          "help": "For example, chasing a ball or playing with an object. No toys or no opportunity means unobserved, rather than never.",
+          "options": {
+            "never": "Never or almost never",
+            "rarely": "Rarely, in a minority of these situations",
+            "sometimes": "In about half of these situations",
+            "often": "Often, in most of these situations",
+            "almost_always": "Always or almost always",
+            "contextual": "Clearly different depending on the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q05": {
+          "text": "Your cat is awake and you calmly offer a familiar toy. What usually happens?",
+          "help": "Recall ordinary situations without waking or repeatedly prompting the cat.",
+          "options": {
+            "no_play": "Does not start playing",
+            "watches": "Watches the toy without pursuing it",
+            "brief_play": "Briefly touches or catches the toy",
+            "joins_play": "Joins in: chases, catches or paws at the toy",
+            "contextual": "Varies with the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q06": {
+          "text": "A familiar person walks past the resting cat. What does the cat usually do?",
+          "help": "The person is not approaching or touching the cat. Do not count simply making room to pass.",
+          "options": {
+            "rests": "Continues resting",
+            "watches": "Watches the person and stays",
+            "moves_away": "Gets up and moves farther away",
+            "hides": "Moves into a hiding place",
+            "still_tense": "Remains motionless in a tense posture",
+            "contextual": "Varies with the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q07": {
+          "text": "There is an everyday sound, such as a cupboard closing. What does the cat usually do?",
+          "help": "Recall a naturally occurring situation, excluding alarms or renovation. Do not make a sound for this question.",
+          "options": {
+            "continues": "Continues what it was doing",
+            "looks": "Looks toward the sound and stays",
+            "moves_away": "Moves farther away",
+            "hides": "Hides",
+            "still_tense": "Remains motionless in a tense posture",
+            "contextual": "Varies with the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q08": {
+          "text": "You are sitting quietly outside feeding time. How does your cat usually engage with you?",
+          "help": "Describe contact initiated by the cat with you, the person answering the interview.",
+          "options": {
+            "approaches_contact": "Approaches and rubs against me or nudges me",
+            "approaches_nearby": "Comes nearby without direct contact",
+            "stays_apart": "Stays farther away without initiating contact",
+            "contextual": "Varies with the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q09": {
+          "text": "You are resting, and comfortable spots are available both near you and farther away. Where does the cat usually settle?",
+          "help": "Near means within arm’s reach. Describe a free choice, without holding the cat or offering food.",
+          "options": {
+            "close": "Beside me, within reach or on my lap",
+            "same_room": "In the same room, beyond arm’s reach",
+            "farther": "In a comfortable spot farther away",
+            "contextual": "Varies with the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q10": {
+          "text": "Your cat and {other_cat} meet at home. How does your cat usually initiate contact?",
+          "help": "Both relationship questions concern the same pair. Being in the same room alone is not a friendly greeting.",
+          "options": {
+            "initiates_greeting": "Approaches to rub against or groom the other cat",
+            "stays_near_without_greeting": "Stays nearby without initiating a greeting",
+            "stays_separate": "Stays apart without initiating contact",
+            "contextual": "Varies with the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q11": {
+          "text": "{other_cat} appears nearby. What does your cat usually do?",
+          "help": "Exclude mutual play chases and simply passing one another. Describe moving away from this particular cat.",
+          "options": {
+            "stays": "Stays or continues what it was doing",
+            "moves_away": "Moves farther away or to another room",
+            "changes_route": "Changes route or moves higher to avoid getting closer",
+            "still_tense": "Stays, but in a tense posture",
+            "contextual": "Varies with the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q12": {
+          "text": "A new, stationary object appears in a familiar room. What does the cat usually do?",
+          "help": "The object is accessible. Recall an ordinary event; do not stage a test.",
+          "options": {
+            "investigates": "Approaches and sniffs or examines it closely",
+            "observes": "Observes it from its current spot",
+            "no_interest": "Carries on with something else",
+            "moves_away": "Moves away from the object",
+            "contextual": "Varies with the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q13": {
+          "text": "A previously closed space becomes accessible in the familiar home. What does the cat usually do?",
+          "help": "The space is safe and freely accessible. Describe something that has already happened.",
+          "options": {
+            "explores": "Enters and investigates",
+            "looks_from_entrance": "Looks from the entrance",
+            "stays_in_known_place": "Stays in the familiar part of the home",
+            "contextual": "Varies with the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q14": {
+          "text": "You serve a familiar meal in the usual spot. What does the cat do before the first bite?",
+          "help": "This describes inspecting food, not appetite, eating speed or acceptance of a new food.",
+          "options": {
+            "starts_eating": "Starts eating without a noticeable inspection pause",
+            "brief_sniff": "Briefly sniffs, then eats",
+            "inspects_first": "First pauses to look or sniff for longer",
+            "contextual": "Varies with the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q15": {
+          "text": "At what height does the cat usually rest when freely choosing a place?",
+          "help": "Describe choice, not jumping ability. Elevated includes a seat, furniture back, windowsill or shelf. The scale records frequency of choosing above-floor places, not height in centimeters.",
+          "options": {
+            "floor": "Almost always at floor level",
+            "mostly_floor": "Mostly at floor level",
+            "balanced": "About equally often",
+            "mostly_elevated": "Mostly on furniture, windowsills or shelves",
+            "elevated": "Almost always above floor level",
+            "contextual": "Clearly different depending on the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q16": {
+          "text": "How sheltered are the places the cat usually chooses to rest?",
+          "help": "Sheltered includes a den, under furniture or behind a plant; open includes an exposed rug or open shelf. A furniture back can be both elevated and open.",
+          "options": {
+            "covered": "Almost always sheltered",
+            "mostly_covered": "Mostly sheltered",
+            "balanced": "About equally often",
+            "mostly_open": "Mostly open",
+            "open": "Almost always open",
+            "contextual": "Clearly different depending on the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "Q17": {
+          "text": "What alternative resting places are genuinely accessible to the cat?",
+          "help": "One answer describes the available choices. Consider closed doors, difficulty reaching a place, and people or animals occupying or blocking it.",
+          "options": {
+            "both": "Choice of both height and shelter: low and elevated, sheltered and open",
+            "height_only": "Choice of height, but only one type of shelter",
+            "cover_only": "Choice of shelter, but only one height level",
+            "neither": "Only one type of place is accessible",
+            "deferred": "Answer later"
+          }
+        },
+        "Q18": {
+          "text": "The cat has settled in its usual resting spot. What do you typically see?",
+          "help": "Consider body relaxation and resting. Being motionless alone does not mean being relaxed.",
+          "options": {
+            "settles": "Relaxes and rests or falls asleep",
+            "stays_alert": "Remains alert and watches the surroundings",
+            "cannot_settle": "Changes position or leaves without settling",
+            "contextual": "Varies with the situation",
+            "deferred": "Answer later"
+          }
+        },
+        "F_TARGET": {
+          "text": "Which other cat will you describe in this short interview?",
+          "help": "Choose one cat or enter a temporary name. We do not choose automatically. The remaining relationships will stay undescribed.",
+          "options": {
+            "deferred": "Answer later"
+          }
+        },
+        "F_CONTEXT": {
+          "text": "What mainly changes in the cat’s behavior around {group}?",
+          "help": "Choose the clearest pattern, or several changes. An association with someone’s presence does not establish a cause.",
+          "options": {
+            "play_more": "Plays more often",
+            "contact_more": "Seeks human contact more often",
+            "withdraw": "Moves away or hides more often",
+            "space": "Changes resting places or movement routes",
+            "food": "Behaves differently around food",
+            "several": "Several of these changes",
+            "deferred": "Answer later"
+          }
+        },
+        "F_SPACE": {
+          "text": "Which description best matches the use of resting places?",
+          "help": "This clarifies the conditions. It adds no caution points and does not replace observations of freely chosen calm rest.",
+          "options": {
+            "access": "Access to other places is limited or blocked",
+            "retreat": "Mainly goes there after moving away from someone",
+            "mobility": "I notice difficulty climbing or jumping",
+            "varied": "Both calm rest and retreat occur",
+            "deferred": "Answer later"
+          }
+        },
+        "F_VARIATION": {
+          "text": "The answers about {axis} differ. What might explain this?",
+          "help": "Both answers can be accurate. Do not force them to agree.",
+          "options": {
+            "different_contexts": "The situations differ, and the behavior differs with them",
+            "varies_same_context": "The behavior varies even in similar conditions",
+            "deferred": "Answer later"
+          }
+        }
+      },
+      "axes": {
+        "activity": {
+          "label": "Daily rhythm",
+          "low": "Calmer rhythm",
+          "high": "Often starts or joins play"
+        },
+        "caution": {
+          "label": "Caution",
+          "low": "Rarely withdraws",
+          "high": "Often withdraws"
+        },
+        "human_contact": {
+          "label": "Closeness with people",
+          "low": "Less often seeks closeness",
+          "high": "Often seeks closeness"
+        },
+        "cat_affiliation": {
+          "label": "Cat relationships — friendly contact",
+          "low": "Rarely initiates",
+          "high": "Often initiates"
+        },
+        "cat_distancing": {
+          "label": "Cat relationships — increasing distance",
+          "low": "Rarely increases distance",
+          "high": "Often increases distance"
+        },
+        "exploration": {
+          "label": "Exploring novelty",
+          "low": "Less often explores independently",
+          "high": "Often explores independently"
+        },
+        "food_inspection": {
+          "label": "At the bowl — inspecting food",
+          "low": "Usually starts without a pause",
+          "high": "Usually inspects first"
+        },
+        "height": {
+          "label": "Space — height",
+          "low": "At floor level",
+          "high": "Above floor level"
+        },
+        "openness": {
+          "label": "Space — shelter",
+          "low": "Sheltered places",
+          "high": "Open places"
+        }
+      }
+    },
+    "usualBasis": "Description of usual behavior reported by the caregiver during the stated observation period.",
+    "snapshotBasis": "This describes behavior during the stated period. It does not establish a stable trait.",
+    "scopeUnresolved": "The scope of relationships with other cats is not yet established. The question count may change after household details or a relationship partner are provided.",
+    "relationshipNotes": {
+      "little_affiliation_and_little_distancing": "In this relationship, both initiating friendly contact and increasing distance were reported infrequently.",
+      "frequent_affiliation_and_little_distancing": "In this relationship, friendly contact was reported often and increasing distance infrequently.",
+      "affiliation_and_distancing_coexist": "Friendly contact and increasing distance coexist in this relationship.",
+      "little_affiliation_and_frequent_distancing": "In this relationship, initiating friendly contact was reported infrequently and increasing distance often."
+    },
+    "legacyQuestionnaire": {
       "questions": {
         "Q01": {
           "text": "How well do the last four weeks reflect the cat’s usual behavior?",
@@ -752,14 +1072,330 @@
         }
       }
     },
-    "usualBasis": "Description of usual behavior reported by the caregiver during the stated observation period.",
-    "snapshotBasis": "This describes behavior during the stated period. It does not establish a stable trait.",
-    "scopeUnresolved": "The scope of relationships with other cats is not yet established. The question count may change after household details or a relationship partner are provided.",
-    "relationshipNotes": {
-      "little_affiliation_and_little_distancing": "In this relationship, both initiating friendly contact and increasing distance were reported infrequently.",
-      "frequent_affiliation_and_little_distancing": "In this relationship, friendly contact was reported often and increasing distance infrequently.",
-      "affiliation_and_distancing_coexist": "Friendly contact and increasing distance coexist in this relationship.",
-      "little_affiliation_and_frequent_distancing": "In this relationship, initiating friendly contact was reported infrequently and increasing distance often."
+    "deferHelp": "Choose this if there has been no opportunity to observe or you cannot tell yet.",
+    "autoAdvance": "Choose an answer to save it and continue to the next question.",
+    "viewPortrait": "View portrait",
+    "healthUnavailable": "Module not available yet",
+    "previousAnswer": "Previous question",
+    "legacyText": "Previous description",
+    "keepHome": "Keep the current home",
+    "cycle": "Character interview · attempt {number}",
+    "cycleStarted": "Started {date}",
+    "cycleUpdated": "Last updated {date}",
+    "optionalNotes": "Additional details · optional",
+    "portraitPartial": "Preliminary portrait",
+    "traitPreliminary": "Preliminary observation",
+    "homeLinkDetails": "Shared or separate home",
+    "noHistory": "No interview attempts yet.",
+    "summaryChoices": "Select the matching answers and confirm.",
+    "legacyPortrait": "This is an earlier interview. Start a new one to use the current questions.",
+    "choiceLabels": {
+      "one_room": "One room",
+      "several_rooms": "Several rooms",
+      "whole_home": "The whole home",
+      "limited": "Access is restricted",
+      "none": "None of these",
+      "one": "One",
+      "two": "Two",
+      "three_plus": "Three or more",
+      "several": "Several",
+      "open": "Open spots",
+      "covered": "Covered spots",
+      "near_people": "Near the caregiver",
+      "quiet": "Quiet spots",
+      "warm": "Warm spots",
+      "elevated": "Elevated spots",
+      "scratching_posts": "Scratching posts",
+      "separate_food_water": "Separate food and water locations",
+      "multiple_water": "Several water locations",
+      "food_puzzles": "Food puzzles",
+      "free": "Can use them freely",
+      "sometimes_blocked": "Access is sometimes blocked",
+      "often_blocked": "Access is often blocked",
+      "mobility_limited": "Movement makes access difficult",
+      "fixed": "Fixed times",
+      "flexible": "Variable times",
+      "freely_available": "Food available for extended periods",
+      "mixed": "A mixture of feeding routines",
+      "morning": "Morning",
+      "day": "Daytime",
+      "evening": "Evening",
+      "night": "Night",
+      "varies": "Varies",
+      "rarely_alone": "Rarely alone",
+      "under_four": "Usually under 4 hours",
+      "four_eight": "Usually 4–8 hours",
+      "over_eight": "Usually over 8 hours",
+      "indoor": "Indoors only",
+      "secured_balcony": "Secured balcony",
+      "secured_garden": "Secured garden or enclosure",
+      "supervised": "Supervised outdoor access",
+      "free_access": "Unsupervised outdoor access",
+      "wand": "Wand toy",
+      "balls": "Balls",
+      "chase": "Chasing toys",
+      "hide_seek": "Hide-and-seek play",
+      "head": "Head and cheek strokes",
+      "back": "Back strokes",
+      "nearby_no_touch": "Being nearby without touch",
+      "brief": "Brief strokes",
+      "comfortable": "Stays calmly",
+      "short_only": "Accepts it briefly",
+      "moves_away": "Tries to get down or move away",
+      "avoids": "Moves away as I try",
+      "belly": "Belly touching",
+      "paws": "Paw touching",
+      "tail": "Tail touching",
+      "pickup": "Being picked up",
+      "brushing": "Brushing",
+      "rest": "Contact while resting",
+      "feeding": "Contact while eating",
+      "deferred": "Answer later"
+    },
+    "narrative": {
+      "traits": {
+        "activity": {
+          "low": {
+            "name": "Play at a gentle pace",
+            "sentence": "Less often starts play and usually does not join in immediately."
+          },
+          "middle": {
+            "name": "Own-pace player",
+            "sentence": "Engages in play, although starting is not a feature of every opportunity."
+          },
+          "high": {
+            "name": "Play enthusiast",
+            "sentence": "Readily starts play and joins offered activity."
+          },
+          "context": {
+            "name": "Daily rhythm · depends on context",
+            "sentence": "Daily rhythm: in this area, behavior depends on the situation or needs a closer description."
+          },
+          "varied": {
+            "name": "Daily rhythm · different responses",
+            "sentence": "Daily rhythm: the answers describe different responses across the situations; both observations are retained."
+          },
+          "use": {
+            "name": "Daily rhythm · currently used places",
+            "sentence": "Daily rhythm: we know which places are used, but available choice or resting conditions do not yet establish a preference."
+          }
+        },
+        "caution": {
+          "low": {
+            "name": "Easygoing housemate",
+            "sentence": "Usually stays in place in the everyday situations described."
+          },
+          "middle": {
+            "name": "Attentive housemate",
+            "sentence": "Responses to everyday situations differ; their descriptions add context."
+          },
+          "high": {
+            "name": "Cautious housemate",
+            "sentence": "Moves farther away when a familiar person passes or an everyday sound occurs."
+          },
+          "context": {
+            "name": "Caution · depends on context",
+            "sentence": "Caution: in this area, behavior depends on the situation or needs a closer description."
+          },
+          "varied": {
+            "name": "Caution · different responses",
+            "sentence": "Caution: the answers describe different responses across the situations; both observations are retained."
+          },
+          "use": {
+            "name": "Caution · currently used places",
+            "sentence": "Caution: we know which places are used, but available choice or resting conditions do not yet establish a preference."
+          }
+        },
+        "human_contact": {
+          "low": {
+            "name": "Discreet companion",
+            "sentence": "Stays farther from you and less often initiates contact in the situations described."
+          },
+          "middle": {
+            "name": "Own-pace companion",
+            "sentence": "Comes near you, although direct contact is not always its choice."
+          },
+          "high": {
+            "name": "Closeness seeker",
+            "sentence": "Seeks contact with you and chooses to rest close to you."
+          },
+          "context": {
+            "name": "Closeness with people · depends on context",
+            "sentence": "Closeness with people: in this area, behavior depends on the situation or needs a closer description."
+          },
+          "varied": {
+            "name": "Closeness with people · different responses",
+            "sentence": "Closeness with people: the answers describe different responses across the situations; both observations are retained."
+          },
+          "use": {
+            "name": "Closeness with people · currently used places",
+            "sentence": "Closeness with people: we know which places are used, but available choice or resting conditions do not yet establish a preference."
+          }
+        },
+        "cat_affiliation": {
+          "low": {
+            "name": "Feline neighbor",
+            "sentence": "Does not initiate a clear friendly greeting in the observed pair."
+          },
+          "middle": {
+            "name": "Familiar feline",
+            "sentence": "The picture of contact initiation with the selected cat is preliminary."
+          },
+          "high": {
+            "name": "Feline companion",
+            "sentence": "Initiates friendly greetings toward the selected cat."
+          },
+          "context": {
+            "name": "Cat relationships — friendly contact · depends on context",
+            "sentence": "Cat relationships — friendly contact: in this area, behavior depends on the situation or needs a closer description."
+          },
+          "varied": {
+            "name": "Cat relationships — friendly contact · different responses",
+            "sentence": "Cat relationships — friendly contact: the answers describe different responses across the situations; both observations are retained."
+          },
+          "use": {
+            "name": "Cat relationships — friendly contact · currently used places",
+            "sentence": "Cat relationships — friendly contact: we know which places are used, but available choice or resting conditions do not yet establish a preference."
+          }
+        },
+        "cat_distancing": {
+          "low": {
+            "name": "Nearby neighbor",
+            "sentence": "The selected cat appearing nearby usually does not lead to moving away."
+          },
+          "middle": {
+            "name": "Neighbor with own space",
+            "sentence": "Distance in the observed pair needs to be considered in context."
+          },
+          "high": {
+            "name": "Own-space seeker",
+            "sentence": "Moves away or changes route when the selected cat appears nearby."
+          },
+          "context": {
+            "name": "Cat relationships — increasing distance · depends on context",
+            "sentence": "Cat relationships — increasing distance: in this area, behavior depends on the situation or needs a closer description."
+          },
+          "varied": {
+            "name": "Cat relationships — increasing distance · different responses",
+            "sentence": "Cat relationships — increasing distance: the answers describe different responses across the situations; both observations are retained."
+          },
+          "use": {
+            "name": "Cat relationships — increasing distance · currently used places",
+            "sentence": "Cat relationships — increasing distance: we know which places are used, but available choice or resting conditions do not yet establish a preference."
+          }
+        },
+        "exploration": {
+          "low": {
+            "name": "Familiar-space regular",
+            "sentence": "Does not independently investigate the new objects or spaces in the described situations."
+          },
+          "middle": {
+            "name": "Watchful observer",
+            "sentence": "First watches new objects and spaces from a distance."
+          },
+          "high": {
+            "name": "Curious explorer",
+            "sentence": "Approaches accessible new objects and investigates newly available spaces."
+          },
+          "context": {
+            "name": "Exploring novelty · depends on context",
+            "sentence": "Exploring novelty: in this area, behavior depends on the situation or needs a closer description."
+          },
+          "varied": {
+            "name": "Exploring novelty · different responses",
+            "sentence": "Exploring novelty: the answers describe different responses across the situations; both observations are retained."
+          },
+          "use": {
+            "name": "Exploring novelty · currently used places",
+            "sentence": "Exploring novelty: we know which places are used, but available choice or resting conditions do not yet establish a preference."
+          }
+        },
+        "food_inspection": {
+          "low": {
+            "name": "Direct diner",
+            "sentence": "Starts a familiar meal without a clear inspection pause."
+          },
+          "middle": {
+            "name": "Brief food inspector",
+            "sentence": "Briefly sniffs a familiar meal before eating."
+          },
+          "high": {
+            "name": "Thoughtful food inspector",
+            "sentence": "Pauses to inspect a familiar meal before the first bite."
+          },
+          "context": {
+            "name": "At the bowl — inspecting food · depends on context",
+            "sentence": "At the bowl — inspecting food: in this area, behavior depends on the situation or needs a closer description."
+          },
+          "varied": {
+            "name": "At the bowl — inspecting food · different responses",
+            "sentence": "At the bowl — inspecting food: the answers describe different responses across the situations; both observations are retained."
+          },
+          "use": {
+            "name": "At the bowl — inspecting food · currently used places",
+            "sentence": "At the bowl — inspecting food: we know which places are used, but available choice or resting conditions do not yet establish a preference."
+          }
+        },
+        "height": {
+          "low": {
+            "name": "Low-spot lover",
+            "sentence": "Given a choice, rests calmly mainly in low spots."
+          },
+          "middle": {
+            "name": "Different-level explorer",
+            "sentence": "Given a choice, uses different heights for resting."
+          },
+          "high": {
+            "name": "High-spot lover",
+            "sentence": "Given a choice, rests calmly mainly in elevated spots."
+          },
+          "context": {
+            "name": "Space — height · depends on context",
+            "sentence": "Space — height: in this area, behavior depends on the situation or needs a closer description."
+          },
+          "varied": {
+            "name": "Space — height · different responses",
+            "sentence": "Space — height: the answers describe different responses across the situations; both observations are retained."
+          },
+          "use": {
+            "name": "Space — height · currently used places",
+            "sentence": "Space — height: we know which places are used, but available choice or resting conditions do not yet establish a preference."
+          }
+        },
+        "openness": {
+          "low": {
+            "name": "Covered-spot lover",
+            "sentence": "Given a choice, rests calmly mainly in covered places."
+          },
+          "middle": {
+            "name": "Flexible spot chooser",
+            "sentence": "Given a choice, rests in places with different amounts of cover."
+          },
+          "high": {
+            "name": "Open-spot lover",
+            "sentence": "Given a choice, rests calmly mainly in open places."
+          },
+          "context": {
+            "name": "Space — shelter · depends on context",
+            "sentence": "Space — shelter: in this area, behavior depends on the situation or needs a closer description."
+          },
+          "varied": {
+            "name": "Space — shelter · different responses",
+            "sentence": "Space — shelter: the answers describe different responses across the situations; both observations are retained."
+          },
+          "use": {
+            "name": "Space — shelter · currently used places",
+            "sentence": "Space — shelter: we know which places are used, but available choice or resting conditions do not yet establish a preference."
+          }
+        }
+      },
+      "combination": {
+        "close_cautious": "Seeks closeness with you while also moving away in the everyday situations described.",
+        "social_distance": "Both friendly greetings and moving away occur in the relationship with the selected cat."
+      },
+      "empty": "We are just getting to know this cat. A description will emerge with observations.",
+      "partial": "This description is preliminary; some observations are still missing.",
+      "snapshot": "This describes behavior during the stated period and conditions."
     }
   }
 }

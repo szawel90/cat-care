@@ -245,7 +245,7 @@ describe('Owned cats, households and immutable observations', () => {
       ['Q02', ['none']],
       ['Q03', 'none'],
       ['Q04', 'deferred'],
-      ['Q05', 'almost_always'],
+      ['Q05', 'joins_play'],
     ] as const) {
       const response = await request('PATCH', `/v1/cats/${cat.id}/portrait`, {
         expectedRevision: portrait.revision,
@@ -448,7 +448,12 @@ describe('Owned cats, households and immutable observations', () => {
       ['Q01', 'usual'],
       ['Q02', ['multiple_cats']],
       ['Q03', 'none'],
-      ...['Q04', 'Q05', 'Q06', 'Q07', 'Q08', 'Q09'].map((id) => [id, 'often']),
+      ['Q04', 'often'],
+      ['Q05', 'joins_play'],
+      ['Q06', 'rests'],
+      ['Q07', 'continues'],
+      ['Q08', 'approaches_contact'],
+      ['Q09', 'close'],
     ]) {
       const response = await request('PATCH', `/v1/cats/${cat.id}/portrait`, {
         expectedRevision: portrait.revision,
@@ -470,8 +475,8 @@ describe('Owned cats, households and immutable observations', () => {
       ).toBe(400);
     for (const [questionId, answer] of [
       ['F_TARGET', 'cat:' + first.id],
-      ['Q10', 'often'],
-      ['Q11', 'never'],
+      ['Q10', 'initiates_greeting'],
+      ['Q11', 'stays'],
     ]) {
       const response = await request('PATCH', `/v1/cats/${cat.id}/portrait`, {
         expectedRevision: portrait.revision,
@@ -493,8 +498,88 @@ describe('Owned cats, households and immutable observations', () => {
     expect(
       (await request('GET', `/v1/cats/${cat.id}/portrait/revisions/${previousRevision}`)).json()
         .answers.Q10,
-    ).toBe('often');
+    ).toBe('initiates_greeting');
     expect((await request('GET', `/v1/cats/${cat.id}/portrait/revisions/0`)).statusCode).toBe(400);
+  });
+
+  it('persists structured selections and deferred home facts without changing prior versions or other cats', async () => {
+    const cat = await create('Structured profile');
+    const old = await request('PATCH', `/v1/cats/${cat.id}`, {
+      expectedVersion: cat.version,
+      attributes: { games: 'Legacy note' },
+    });
+    const updated = await request('PATCH', `/v1/cats/${cat.id}`, {
+      expectedVersion: old.json().version,
+      attributes: { games: ['wand', 'balls'], handling: 'deferred' },
+      household: {
+        expectedVersion: cat.household.version,
+        environment: { restPlaces: ['quiet', 'covered'] },
+        facts: { children: 'deferred', dogs: 'no', other_animals: 'no', totalCats: 'one' },
+      },
+    });
+    expect(updated.statusCode).toBe(200);
+    expect(updated.json().attributes).toMatchObject({
+      games: ['wand', 'balls'],
+      handling: 'deferred',
+    });
+    const history = (await request('GET', `/v1/cats/${cat.id}/history`)).json();
+    expect(history.cats[1].attributes.games).toBe('Legacy note');
+    expect(
+      (
+        await request('PATCH', `/v1/cats/${cat.id}`, {
+          expectedVersion: updated.json().version,
+          attributes: { games: ['none', 'wand'] },
+        })
+      ).statusCode,
+    ).toBe(400);
+    expect(
+      (
+        await request(
+          'PATCH',
+          `/v1/cats/${cat.id}`,
+          { expectedVersion: updated.json().version, attributes: { games: ['balls'] } },
+          otherOwner,
+        )
+      ).statusCode,
+    ).toBe(404);
+    const started = (
+      await request('POST', `/v1/cats/${cat.id}/portrait`, {
+        expectedRevision: 0,
+        periodStart: start,
+        periodEnd: today,
+      })
+    ).json();
+    expect(started.answers.Q02).toBeUndefined();
+    const answered = (
+      await request('PATCH', `/v1/cats/${cat.id}/portrait`, {
+        expectedRevision: started.revision,
+        questionId: 'Q01',
+        answer: 'usual',
+      })
+    ).json();
+    expect(answered.assessmentId).toBe(started.assessmentId);
+    expect(answered.result.description.version).toBe('cat-description-1');
+    const rows = (await request('GET', `/v1/cats/${cat.id}/portrait/revisions`)).json();
+    expect(rows).toHaveLength(2);
+    expect(
+      rows.every(
+        (row: { assessmentId: string; profileStatus: string }) =>
+          row.assessmentId === started.assessmentId && row.profileStatus,
+      ),
+    ).toBe(true);
+    await database.portraitRevision.update({
+      where: { catId_revision: { catId: cat.id, revision: answered.revision } },
+      data: { rulesVersion: 'cat-portrait-draft-1' },
+    });
+    expect(
+      (
+        await request('PATCH', `/v1/cats/${cat.id}/portrait`, {
+          expectedRevision: answered.revision,
+          questionId: 'Q02',
+          answer: ['none'],
+        })
+      ).statusCode,
+    ).toBe(409);
   });
 
   it('erases all owned versions when the existing account-deletion lifecycle removes the owner', async () => {

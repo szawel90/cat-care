@@ -1,7 +1,7 @@
 'use client';
 import { useCatMessages } from './cat-messages';
 import { useLocale, useTranslations } from 'next-intl';
-import { axisIds, type AxisId, type AxisResult, type PortraitRecord } from '@cat-care/shared';
+import { type AxisId, type PortraitRecord } from '@cat-care/shared';
 import { Button } from './ui/button';
 
 export type PortraitCopy = {
@@ -44,94 +44,54 @@ export function questionText(copy: PortraitCopy, id: string, portrait: PortraitR
           : '',
     );
 }
-const intersections: [AxisId, AxisId][] = [
-  ['activity', 'human_contact'],
-  ['exploration', 'caution'],
-  ['cat_affiliation', 'cat_distancing'],
-  ['height', 'openness'],
-];
-function interval(axis: AxisResult): [number, number] | null {
-  return axis.range ?? (axis.point !== null ? [axis.point, axis.point] : null);
+
+function useNarrative() {
+  return useCatMessages().narrative as unknown as Record<string, unknown>;
 }
-export function PortraitIntersection({
-  x,
-  y,
-  copy,
+function textAt(copy: Record<string, unknown>, path: string): string {
+  const value = path
+    .split('.')
+    .reduce<unknown>(
+      (value, key) =>
+        value && typeof value === 'object' ? (value as Record<string, unknown>)[key] : undefined,
+      copy,
+    );
+  return typeof value === 'string' ? value : '';
+}
+export function CatPortraitSummary({
+  portrait,
+  compact = false,
 }: {
-  x: AxisResult;
-  y: AxisResult;
-  copy: { x: PortraitCopy['axes'][AxisId]; y: PortraitCopy['axes'][AxisId] };
+  portrait: PortraitRecord;
+  compact?: boolean;
 }) {
   const t = useTranslations('Cats'),
-    locale = useLocale();
-  const xs = interval(x),
-    ys = interval(y);
-  const number = (value: number) =>
-    new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(value);
-  const position = (axis: AxisResult) =>
-    axis.range
-      ? t('range', { low: number(axis.range[0]), high: number(axis.range[1]) })
-      : axis.point !== null
-        ? t('point', { value: number(axis.point) })
-        : t('unknown');
-  const title = `${copy.x.label} × ${copy.y.label}`;
+    copy = useNarrative();
+  const description = portrait.result.description;
+  if (!description) return <p>{t('legacyPortrait')}</p>;
+  const traits = compact ? description.traits.slice(0, 3) : description.traits;
   return (
-    <figure className="cat-intersection">
-      <figcaption>
-        <h3>{title}</h3>
-      </figcaption>
-      <div className="cat-map-y">{copy.y.high}</div>
-      <svg
-        viewBox="0 0 280 220"
-        role="img"
-        aria-label={`${title}. ${copy.x.label}: ${position(x)}. ${copy.y.label}: ${position(y)}`}
-      >
-        {[0, 1, 2, 3, 4].map((n) => (
-          <g key={n}>
-            <path
-              className="cat-map-grid"
-              d={`M ${30 + n * 55} 10 V 190 M 30 ${190 - n * 45} H 250`}
-            />
-            <text x={30 + n * 55} y="210" textAnchor="middle">
-              {n}
-            </text>
-            <text x="16" y={194 - n * 45} textAnchor="middle">
-              {n}
-            </text>
-          </g>
+    <div className="cat-summary">
+      <div className="cat-traits" role="group" aria-label={t('portrait')}>
+        {traits.map((trait) => (
+          <span
+            className="cat-trait"
+            key={trait.axis}
+            data-trait={trait.axis}
+            data-band={trait.band}
+          >
+            {textAt(copy, `traits.${trait.axis}.${trait.band}.name`)}
+            {trait.preliminary && <span> · {t('traitPreliminary')}</span>}
+          </span>
         ))}
-        {xs &&
-          ys &&
-          (xs[0] === xs[1] && ys[0] === ys[1] ? (
-            <circle className="cat-map-mark" cx={30 + xs[0] * 55} cy={190 - ys[0] * 45} r="6" />
-          ) : xs[0] === xs[1] || ys[0] === ys[1] ? (
-            <line
-              className="cat-map-mark"
-              x1={30 + xs[0] * 55}
-              x2={30 + xs[1] * 55}
-              y1={190 - ys[0] * 45}
-              y2={190 - ys[1] * 45}
-            />
-          ) : (
-            <rect
-              className="cat-map-area"
-              x={30 + xs[0] * 55}
-              y={190 - ys[1] * 45}
-              width={(xs[1] - xs[0]) * 55}
-              height={(ys[1] - ys[0]) * 45}
-            />
-          ))}
-      </svg>
-      <div className="cat-map-y">{copy.y.low}</div>
-      <div className="cat-scale-labels">
-        <span>{copy.x.low}</span>
-        <span>{copy.x.high}</span>
       </div>
-      {(!xs || !ys) && <p className="hint">{t('mapEmpty')}</p>}
-    </figure>
+      <p>{description.sentenceKeys.map((key) => textAt(copy, key)).join(' ')}</p>
+      {(portrait.result.next_question || portrait.result.pending.length > 0) && (
+        <p className="hint">{t('portraitPartial')}</p>
+      )}
+    </div>
   );
 }
-
 export function CatPortraitResult({
   portrait,
   onEdit,
@@ -141,36 +101,33 @@ export function CatPortraitResult({
 }) {
   const t = useTranslations('Cats'),
     locale = useLocale(),
-    copy = useCatMessages().questionnaire as PortraitCopy;
-  const relationNotes = useCatMessages().relationshipNotes as Record<string, string>;
-  const statuses = useCatMessages().statuses as Record<string, string>,
-    reasons = useCatMessages().reasons as Record<string, string>;
-  const number = (value: number) =>
-    new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(value);
+    messages = useCatMessages();
+  const current = Boolean(portrait.result.description);
+  const copy = (current ? messages.questionnaire : messages.legacyQuestionnaire) as PortraitCopy;
+  const date = (value: string) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(
+      new Date(value),
+    );
   return (
-    <section className="cat-portrait-result" aria-label={t('portrait')}>
+    <section className="cat-portrait-result">
       <h2>{t('portrait')}</h2>
-      <p className="cat-status">{t(`statuses.${portrait.result.profile_status}`)}</p>
-      <p>
-        {t('period')}:{' '}
-        {new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(
-          new Date(portrait.periodStart),
-        )}{' '}
-        –{' '}
-        {new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(
-          new Date(portrait.periodEnd),
-        )}
+      <p className="hint">
+        {date(portrait.periodStart)} – {date(portrait.periodEnd)}
       </p>
       {portrait.contextChangedAt && <p className="feedback">{t('contextChanged')}</p>}
-      <p className="hint">{t(portrait.answers.Q01 === 'usual' ? 'usualBasis' : 'snapshotBasis')}</p>
+      <CatPortraitSummary portrait={portrait} />
+      {portrait.prefilledQuestions.includes('Q02') && (
+        <div className="cat-prefill">
+          <p>{t('prefilled')}</p>
+          {onEdit && current && (
+            <Button variant="outline" onClick={() => onEdit('Q02')}>
+              {t('reviewHome')}
+            </Button>
+          )}
+        </div>
+      )}
       {portrait.result.progress.relationship_scope_unresolved && (
         <p className="hint">{t('scopeUnresolved')}</p>
-      )}
-      {portrait.result.relationship_note && (
-        <p>{relationNotes[portrait.result.relationship_note]}</p>
-      )}
-      {portrait.result.headline && (
-        <p className="cat-headline">{t(`headlines.${portrait.result.headline}`)}</p>
       )}
       {portrait.result.pending.length > 0 && (
         <section className="cat-pending">
@@ -179,7 +136,7 @@ export function CatPortraitResult({
           {portrait.result.pending.map((item) => (
             <div key={item.id}>
               <span>{questionText(copy, item.id, portrait)}</span>
-              {onEdit && (
+              {onEdit && current && (
                 <Button variant="outline" onClick={() => onEdit(item.id)}>
                   {t('changeAnswer')}
                 </Button>
@@ -188,74 +145,6 @@ export function CatPortraitResult({
           ))}
         </section>
       )}
-      <h3>{t('scales')}</h3>
-      <div className="cat-scales">
-        {axisIds.map((id) => {
-          const axis = portrait.result.axes[id],
-            span = interval(axis),
-            labels = copy.axes[id];
-          return (
-            <section className="cat-scale-card" key={id}>
-              <h4>{labels.label}</h4>
-              <p>{statuses[axis.status]}</p>
-              <div className="cat-scale-track" aria-hidden="true">
-                {span && (
-                  <span
-                    style={{ left: `${span[0] * 25}%`, width: `${(span[1] - span[0]) * 25}%` }}
-                    className={span[0] === span[1] ? 'cat-scale-point' : 'cat-scale-range'}
-                  />
-                )}
-              </div>
-              <div className="cat-scale-labels">
-                <span>{labels.low}</span>
-                <span>{labels.high}</span>
-              </div>
-              <p>
-                {axis.range
-                  ? t('range', { low: number(axis.range[0]), high: number(axis.range[1]) })
-                  : axis.point !== null
-                    ? t('point', { value: number(axis.point) })
-                    : t('unknown')}
-              </p>
-              {axis.reasons.map((reason) => (
-                <p className="hint" key={reason}>
-                  {reasons[reason]}
-                </p>
-              ))}
-              <details>
-                <summary>
-                  {t('sourceAnswers', {
-                    questions: axis.items.map((item) => item.question).join(', '),
-                  })}
-                </summary>
-                {axis.items.map((item) => (
-                  <p key={item.question}>
-                    {questionText(copy, item.question, portrait)}
-                    <br />
-                    <strong>
-                      {item.answer
-                        ? answerLabel(copy, item.question, item.answer, portrait)
-                        : t('notProvided')}
-                    </strong>
-                  </p>
-                ))}
-              </details>
-            </section>
-          );
-        })}
-      </div>
-      <h3>{t('maps')}</h3>
-      <p className="hint">{t('mapHelp')}</p>
-      <div className="cat-map-grid-wrap">
-        {intersections.map(([x, y]) => (
-          <PortraitIntersection
-            key={x}
-            x={portrait.result.axes[x]}
-            y={portrait.result.axes[y]}
-            copy={{ x: copy.axes[x], y: copy.axes[y] }}
-          />
-        ))}
-      </div>
       <details className="cat-answer-review">
         <summary>{t('answers')}</summary>
         {Object.entries({ ...portrait.answers, ...portrait.followups }).map(([id, answer]) => (
@@ -265,7 +154,7 @@ export function CatPortraitResult({
               <br />
               <strong>{answerLabel(copy, id, answer, portrait)}</strong>
             </p>
-            {onEdit && (
+            {onEdit && current && (
               <Button variant="outline" onClick={() => onEdit(id)}>
                 {t('changeAnswer')}
               </Button>

@@ -1,4 +1,3 @@
-/** Application-specific observation categories, not psychometric or population scores. */
 export const portraitQuestions: Record<
   string,
   { kind: string; options: Array<{ id: string; value: number | null }> }
@@ -20,6 +19,10 @@ export const portraitQuestions: Record<
       },
       {
         id: 'short',
+        value: null,
+      },
+      {
+        id: 'unknown',
         value: null,
       },
       {
@@ -53,6 +56,10 @@ export const portraitQuestions: Record<
       },
       {
         id: 'none',
+        value: null,
+      },
+      {
+        id: 'unknown',
         value: null,
       },
       {
@@ -93,6 +100,10 @@ export const portraitQuestions: Record<
         value: null,
       },
       {
+        id: 'unknown',
+        value: null,
+      },
+      {
         id: 'deferred',
         value: null,
       },
@@ -122,6 +133,14 @@ export const portraitQuestions: Record<
         value: 4,
       },
       {
+        id: 'unobserved',
+        value: null,
+      },
+      {
+        id: 'unknown',
+        value: null,
+      },
+      {
         id: 'contextual',
         value: null,
       },
@@ -135,20 +154,32 @@ export const portraitQuestions: Record<
     kind: 'single',
     options: [
       {
-        id: 'no_play',
+        id: 'never',
         value: 0,
       },
       {
-        id: 'watches',
+        id: 'rarely',
         value: 1,
       },
       {
-        id: 'brief_play',
+        id: 'sometimes',
         value: 2,
       },
       {
-        id: 'joins_play',
+        id: 'often',
+        value: 3,
+      },
+      {
+        id: 'almost_always',
         value: 4,
+      },
+      {
+        id: 'unobserved',
+        value: null,
+      },
+      {
+        id: 'unknown',
+        value: null,
       },
       {
         id: 'contextual',
@@ -164,23 +195,31 @@ export const portraitQuestions: Record<
     kind: 'single',
     options: [
       {
-        id: 'rests',
+        id: 'never',
         value: 0,
       },
       {
-        id: 'watches',
-        value: 0,
+        id: 'rarely',
+        value: 1,
       },
       {
-        id: 'moves_away',
+        id: 'sometimes',
+        value: 2,
+      },
+      {
+        id: 'often',
+        value: 3,
+      },
+      {
+        id: 'almost_always',
         value: 4,
       },
       {
-        id: 'hides',
-        value: 4,
+        id: 'unobserved',
+        value: null,
       },
       {
-        id: 'still_tense',
+        id: 'unknown',
         value: null,
       },
       {
@@ -197,23 +236,31 @@ export const portraitQuestions: Record<
     kind: 'single',
     options: [
       {
-        id: 'continues',
+        id: 'never',
         value: 0,
       },
       {
-        id: 'looks',
-        value: 0,
+        id: 'rarely',
+        value: 1,
       },
       {
-        id: 'moves_away',
+        id: 'sometimes',
+        value: 2,
+      },
+      {
+        id: 'often',
+        value: 3,
+      },
+      {
+        id: 'almost_always',
         value: 4,
       },
       {
-        id: 'hides',
-        value: 4,
+        id: 'unobserved',
+        value: null,
       },
       {
-        id: 'still_tense',
+        id: 'unknown',
         value: null,
       },
       {
@@ -230,16 +277,32 @@ export const portraitQuestions: Record<
     kind: 'single',
     options: [
       {
-        id: 'approaches_contact',
-        value: 4,
+        id: 'never',
+        value: 0,
       },
       {
-        id: 'approaches_nearby',
+        id: 'rarely',
+        value: 1,
+      },
+      {
+        id: 'sometimes',
         value: 2,
       },
       {
-        id: 'stays_apart',
-        value: 0,
+        id: 'often',
+        value: 3,
+      },
+      {
+        id: 'almost_always',
+        value: 4,
+      },
+      {
+        id: 'unobserved',
+        value: null,
+      },
+      {
+        id: 'unknown',
+        value: null,
       },
       {
         id: 'contextual',
@@ -255,16 +318,32 @@ export const portraitQuestions: Record<
     kind: 'single',
     options: [
       {
-        id: 'close',
-        value: 4,
+        id: 'never',
+        value: 0,
       },
       {
-        id: 'same_room',
+        id: 'rarely',
+        value: 1,
+      },
+      {
+        id: 'sometimes',
         value: 2,
       },
       {
-        id: 'farther',
-        value: 0,
+        id: 'often',
+        value: 3,
+      },
+      {
+        id: 'almost_always',
+        value: 4,
+      },
+      {
+        id: 'unobserved',
+        value: null,
+      },
+      {
+        id: 'unknown',
+        value: null,
       },
       {
         id: 'contextual',
@@ -280,16 +359,32 @@ export const portraitQuestions: Record<
     kind: 'single',
     options: [
       {
-        id: 'initiates_greeting',
+        id: 'never',
+        value: 0,
+      },
+      {
+        id: 'rarely',
+        value: 1,
+      },
+      {
+        id: 'sometimes',
+        value: 2,
+      },
+      {
+        id: 'often',
+        value: 3,
+      },
+      {
+        id: 'almost_always',
         value: 4,
       },
       {
-        id: 'stays_near_without_greeting',
-        value: 0,
+        id: 'unobserved',
+        value: null,
       },
       {
-        id: 'stays_separate',
-        value: 0,
+        id: 'unknown',
+        value: null,
       },
       {
         id: 'contextual',
@@ -305,19 +400,31 @@ export const portraitQuestions: Record<
     kind: 'single',
     options: [
       {
-        id: 'stays',
+        id: 'never',
         value: 0,
       },
       {
-        id: 'moves_away',
+        id: 'rarely',
+        value: 1,
+      },
+      {
+        id: 'sometimes',
+        value: 2,
+      },
+      {
+        id: 'often',
+        value: 3,
+      },
+      {
+        id: 'almost_always',
         value: 4,
       },
       {
-        id: 'changes_route',
-        value: 4,
+        id: 'unobserved',
+        value: null,
       },
       {
-        id: 'still_tense',
+        id: 'unknown',
         value: null,
       },
       {
@@ -334,20 +441,32 @@ export const portraitQuestions: Record<
     kind: 'single',
     options: [
       {
-        id: 'investigates',
-        value: 4,
+        id: 'never',
+        value: 0,
       },
       {
-        id: 'observes',
+        id: 'rarely',
+        value: 1,
+      },
+      {
+        id: 'sometimes',
         value: 2,
       },
       {
-        id: 'no_interest',
-        value: 0,
+        id: 'often',
+        value: 3,
       },
       {
-        id: 'moves_away',
-        value: 0,
+        id: 'almost_always',
+        value: 4,
+      },
+      {
+        id: 'unobserved',
+        value: null,
+      },
+      {
+        id: 'unknown',
+        value: null,
       },
       {
         id: 'contextual',
@@ -363,16 +482,32 @@ export const portraitQuestions: Record<
     kind: 'single',
     options: [
       {
-        id: 'explores',
-        value: 4,
+        id: 'never',
+        value: 0,
       },
       {
-        id: 'looks_from_entrance',
+        id: 'rarely',
+        value: 1,
+      },
+      {
+        id: 'sometimes',
         value: 2,
       },
       {
-        id: 'stays_in_known_place',
-        value: 0,
+        id: 'often',
+        value: 3,
+      },
+      {
+        id: 'almost_always',
+        value: 4,
+      },
+      {
+        id: 'unobserved',
+        value: null,
+      },
+      {
+        id: 'unknown',
+        value: null,
       },
       {
         id: 'contextual',
@@ -388,16 +523,32 @@ export const portraitQuestions: Record<
     kind: 'single',
     options: [
       {
-        id: 'starts_eating',
+        id: 'never',
         value: 0,
       },
       {
-        id: 'brief_sniff',
+        id: 'rarely',
+        value: 1,
+      },
+      {
+        id: 'sometimes',
         value: 2,
       },
       {
-        id: 'inspects_first',
+        id: 'often',
+        value: 3,
+      },
+      {
+        id: 'almost_always',
         value: 4,
+      },
+      {
+        id: 'unobserved',
+        value: null,
+      },
+      {
+        id: 'unknown',
+        value: null,
       },
       {
         id: 'contextual',
@@ -433,6 +584,14 @@ export const portraitQuestions: Record<
         value: 4,
       },
       {
+        id: 'unobserved',
+        value: null,
+      },
+      {
+        id: 'unknown',
+        value: null,
+      },
+      {
         id: 'contextual',
         value: null,
       },
@@ -466,6 +625,14 @@ export const portraitQuestions: Record<
         value: 4,
       },
       {
+        id: 'unobserved',
+        value: null,
+      },
+      {
+        id: 'unknown',
+        value: null,
+      },
+      {
         id: 'contextual',
         value: null,
       },
@@ -495,6 +662,10 @@ export const portraitQuestions: Record<
         value: null,
       },
       {
+        id: 'unknown',
+        value: null,
+      },
+      {
         id: 'deferred',
         value: null,
       },
@@ -504,16 +675,32 @@ export const portraitQuestions: Record<
     kind: 'single',
     options: [
       {
-        id: 'settles',
-        value: 4,
+        id: 'never',
+        value: 0,
       },
       {
-        id: 'stays_alert',
+        id: 'rarely',
+        value: 1,
+      },
+      {
+        id: 'sometimes',
         value: 2,
       },
       {
-        id: 'cannot_settle',
-        value: 0,
+        id: 'often',
+        value: 3,
+      },
+      {
+        id: 'almost_always',
+        value: 4,
+      },
+      {
+        id: 'unobserved',
+        value: null,
+      },
+      {
+        id: 'unknown',
+        value: null,
       },
       {
         id: 'contextual',
@@ -539,7 +726,16 @@ export const portraitAxes = {
 };
 export const portraitFollowups: Record<string, string[]> = {
   F_TARGET: [],
-  F_CONTEXT: ['play_more', 'contact_more', 'withdraw', 'space', 'food', 'several', 'deferred'],
-  F_SPACE: ['access', 'retreat', 'mobility', 'varied', 'deferred'],
-  F_VARIATION: ['different_contexts', 'varies_same_context', 'deferred'],
+  F_CONTEXT: [
+    'play_more',
+    'contact_more',
+    'withdraw',
+    'space',
+    'food',
+    'several',
+    'unknown',
+    'deferred',
+  ],
+  F_SPACE: ['access', 'retreat', 'mobility', 'varied', 'unknown', 'deferred'],
+  F_VARIATION: ['different_contexts', 'varies_same_context', 'unknown', 'deferred'],
 };

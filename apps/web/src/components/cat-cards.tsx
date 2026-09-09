@@ -32,7 +32,11 @@ export function CatCards({
             )}
           </span>
           <strong>{cat.name}</strong>
-          <span>{cat.attributes.age || t('notProvided')}</span>
+          <span>
+            {cat.attributes.age === 'deferred'
+              ? t('pending')
+              : cat.attributes.age || t('notProvided')}
+          </span>
           <small>{cat.archivedAt ? t('archived') : t(`statuses.${cat.portraitStatus}`)}</small>
         </button>
       ))}

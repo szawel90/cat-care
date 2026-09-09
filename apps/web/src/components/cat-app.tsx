@@ -1,12 +1,11 @@
 'use client';
-import { useCatMessages } from './cat-messages';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, startTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
   profileAreas,
-  profileFields,
+  nextPortraitQuestion,
   type CatRecord,
   type PortraitRecord,
   type ProfileArea,
@@ -14,7 +13,7 @@ import {
 import { catError, catRequest } from '@/lib/cats-api';
 import { useCats } from './cats-provider';
 import { HomeHeader } from './home-header';
-import { CatAvatar } from './cat-picker';
+import { CatProfileOverview } from './cat-profile-overview';
 import { CatAreaForm, CatHouseholdForm, CatIdentityForm } from './cat-profile-forms';
 import { CatObservationForm, CatQuestionForm } from './cat-interview';
 import { CatPortraitResult } from './cat-portrait-result';
@@ -25,6 +24,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dial
 import { Feedback } from './feedback';
 
 type View =
+  | 'portrait'
   | 'profile'
   | 'identity'
   | 'home-link'
@@ -54,6 +54,7 @@ function CatAppContent({ catId }: { catId: string }) {
     [dirty, setDirty] = useState(false);
   const { confirmDiscard, dialog } = useUnsavedChangesDialog();
   const heading = useRef<HTMLHeadingElement>(null);
+  const visited = useRef<string[]>([]);
   const ownerId = context.ownerId;
   const reload = useCallback(async () => {
     if (!ownerId || catId === 'new') return;
@@ -85,7 +86,7 @@ function CatAppContent({ catId }: { catId: string }) {
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty, busy]);
   useLayoutEffect(() => {
-    heading.current?.focus();
+    if (view !== 'interview') heading.current?.focus();
   }, [view, question, loading]);
   function clearDraft() {
     const key =
@@ -132,18 +133,26 @@ function CatAppContent({ catId }: { catId: string }) {
     setPortrait(result);
     setDirty(false);
     setNotice(true);
-    if (question && Object.hasOwn({ ...portrait?.answers, ...portrait?.followups }, question)) {
-      setView('profile');
-      setQuestion(null);
-    } else {
-      setQuestion(result.result.next_question?.id ?? null);
-      setView(result.result.next_question ? 'interview' : 'profile');
-    }
+    if (question) visited.current.push(question);
+    const next = nextPortraitQuestion(result, visited.current);
+    setQuestion(next);
+    setView(next ? 'interview' : 'profile');
   }
   function editAnswer(id: string) {
+    visited.current = [];
     setQuestion(id);
     setView('interview');
     setNotice(false);
+  }
+  function continuePortrait() {
+    visited.current = [];
+    if (!portrait || !portrait.result.description) {
+      setView('period');
+      return;
+    }
+    const next = nextPortraitQuestion(portrait);
+    setQuestion(next);
+    setView(next ? 'interview' : 'portrait');
   }
   async function archive(restore = false) {
     if (!cat) return;
@@ -176,11 +185,6 @@ function CatAppContent({ catId }: { catId: string }) {
     onDirty: setDirty,
     onBusy: setBusy,
   };
-  const otherNames =
-    cat?.household.members.filter((member) => member.id !== cat.id).map((member) => member.name) ??
-    [];
-  const fields = useCatMessages().fields as Record<string, string>,
-    options = useCatMessages().options as Record<string, string>;
   return (
     <>
       <a className="skip-link" href="#main-content">
@@ -196,17 +200,23 @@ function CatAppContent({ catId }: { catId: string }) {
           <p role="status">{t('loading')}</p>
         ) : (
           <>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                void beforeNavigate().then((ok) => {
-                  if (ok) router.push('/account');
-                });
-              }}
+            {view !== 'interview' && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  void beforeNavigate().then((ok) => {
+                    if (ok) router.push('/account');
+                  });
+                }}
+              >
+                {t('yourCats')}
+              </Button>
+            )}
+            <h1
+              className={(view === 'profile' && cat) || view === 'interview' ? 'sr-only' : ''}
+              ref={heading}
+              tabIndex={-1}
             >
-              {t('yourCats')}
-            </Button>
-            <h1 className={view === 'profile' && cat ? 'sr-only' : ''} ref={heading} tabIndex={-1}>
               {catId === 'new'
                 ? t('addCat')
                 : view === 'profile'
@@ -227,13 +237,26 @@ function CatAppContent({ catId }: { catId: string }) {
                 </Button>
               </Feedback>
             )}
-            {notice && <Feedback>{t('saved')}</Feedback>}
+            {notice && view !== 'interview' && <Feedback>{t('saved')}</Feedback>}
             {view === 'identity' && (catId === 'new' || cat) && (
               <CatIdentityForm key={catId} cat={cat ?? undefined} {...callbacks} />
             )}
-            {cat && view === 'home-link' && <CatHouseholdForm cat={cat} {...callbacks} />}
+            {cat && view === 'home-link' && (
+              <CatHouseholdForm cat={cat} {...callbacks} onCancel={() => void navigate('home')} />
+            )}
             {cat && profileAreas.includes(view as ProfileArea) && (
-              <CatAreaForm key={view} cat={cat} area={view as ProfileArea} {...callbacks} />
+              <>
+                {view === 'home' && (
+                  <details className="cat-home-link">
+                    <summary>{t('homeLinkDetails')}</summary>
+                    <p>{t('shareHelp')}</p>
+                    <Button variant="outline" onClick={() => void navigate('home-link')}>
+                      {t('homeChoice')}
+                    </Button>
+                  </details>
+                )}
+                <CatAreaForm key={view} cat={cat} area={view as ProfileArea} {...callbacks} />
+              </>
             )}
             {cat && view === 'period' && (
               <CatObservationForm
@@ -243,6 +266,7 @@ function CatAppContent({ catId }: { catId: string }) {
                 onSaved={async (result) => {
                   await context.refresh();
                   setPortrait(result);
+                  visited.current = [];
                   setQuestion(result.result.next_question?.id ?? null);
                   setView(result.result.next_question ? 'interview' : 'profile');
                   setDirty(false);
@@ -271,6 +295,17 @@ function CatAppContent({ catId }: { catId: string }) {
                 />
               </>
             )}
+            {cat && portrait && view === 'portrait' && (
+              <>
+                <Button variant="ghost" onClick={() => void navigate('profile')}>
+                  {t('back')}
+                </Button>
+                <CatPortraitResult
+                  portrait={portrait}
+                  onEdit={cat.archivedAt ? undefined : editAnswer}
+                />
+              </>
+            )}
             {cat && (view === 'profile-history' || view === 'portrait-history') && (
               <CatHistory
                 key={view}
@@ -281,189 +316,79 @@ function CatAppContent({ catId }: { catId: string }) {
             )}
             {cat && view === 'profile' && (
               <>
-                <section className="cat-profile-heading">
-                  <div className="cat-identity">
-                    <CatAvatar cat={cat} large />
-                    <div>
-                      <p className="cat-eyebrow">cat care</p>
-                      <h2>{cat.name}</h2>
-                      {!cat.archivedAt && (
-                        <Button variant="outline" onClick={() => void navigate('identity')}>
-                          {t('editIdentity')}
+                <CatProfileOverview
+                  cat={cat}
+                  portrait={portrait}
+                  onIdentity={() => void navigate('identity')}
+                  onArea={(area) => void navigate(area)}
+                  actions={
+                    cat.archivedAt ? (
+                      <section className="cat-portrait-callout">
+                        <h2>{t('archived')}</h2>
+                        <p>{t('archivedHelp')}</p>
+                        <Button disabled={busy} onClick={() => void archive(true)}>
+                          {t('restore')}
                         </Button>
-                      )}
-                    </div>
-                  </div>
-                  <div className="cat-summary">
-                    <p>
-                      {portrait?.result.headline
-                        ? t('summaryPortrait', {
-                            headline: t(`headlines.${portrait.result.headline}`),
-                          })
-                        : t('summaryEmpty', { name: cat.name })}
-                    </p>
-                    {cat.attributes.age && <p>{t('summaryAge', { age: cat.attributes.age })}</p>}
-                    {cat.attributes.games && (
-                      <p>{t('summaryGames', { games: cat.attributes.games })}</p>
-                    )}
-                    {portrait && portrait.result.profile_status !== 'preliminary_portrait' && (
-                      <p className="hint">{t('summaryPartial')}</p>
-                    )}
-                  </div>
-                </section>
-                {cat.archivedAt ? (
-                  <section className="cat-portrait-callout">
-                    <h2>{t('archived')}</h2>
-                    <p>{t('archivedHelp')}</p>
-                    <Button disabled={busy} onClick={() => void archive(true)}>
-                      {t('restore')}
-                    </Button>
-                  </section>
-                ) : (
-                  <section className="cat-portrait-callout">
-                    <div>
-                      <h2>{t('portrait')}</h2>
-                      <p>{t(`statuses.${cat.portraitStatus}`)}</p>
-                    </div>
-                    <div className="cat-actions">
-                      <Button
-                        onClick={() => {
-                          if (!portrait) setView('period');
-                          else if (portrait.result.next_question) {
-                            setQuestion(portrait.result.next_question.id);
-                            setView('interview');
-                          } else
-                            document
-                              .getElementById('portrait-results')
-                              ?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                      >
-                        {t(
-                          !portrait
-                            ? 'startPortrait'
-                            : portrait.result.next_question
-                              ? 'continuePortrait'
-                              : 'scales',
+                      </section>
+                    ) : (
+                      <div className="cat-portrait-actions">
+                        <Button onClick={continuePortrait}>
+                          {t(
+                            !portrait
+                              ? 'startPortrait'
+                              : nextPortraitQuestion(portrait) && portrait.result.description
+                                ? 'continuePortrait'
+                                : 'viewPortrait',
+                          )}
+                        </Button>
+                        {portrait && (
+                          <Button variant="ghost" onClick={() => void navigate('period')}>
+                            {t('newObservation')}
+                          </Button>
                         )}
+                      </div>
+                    )
+                  }
+                />
+                <details className="cat-profile-fold">
+                  <summary>{t('areas.history')}</summary>
+                  {cat.events.length ? (
+                    cat.events.map((event) => (
+                      <p key={event.id}>
+                        <strong>{event.title}</strong> · {event.date}
+                        <br />
+                        {event.details}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="hint">{t('notProvided')}</p>
+                  )}
+                  {!cat.archivedAt && (
+                    <Button variant="outline" onClick={() => void navigate('history')}>
+                      {t('addEvent')}
+                    </Button>
+                  )}
+                </details>
+                <details className="cat-profile-fold">
+                  <summary>{t('history')}</summary>
+                  <div className="cat-actions">
+                    <Button variant="outline" onClick={() => void navigate('profile-history')}>
+                      {t('catHistory')}
+                    </Button>
+                    {portrait && (
+                      <Button variant="outline" onClick={() => void navigate('portrait-history')}>
+                        {t('portraitHistory')}
                       </Button>
-                      {portrait && (
-                        <Button variant="outline" onClick={() => setView('period')}>
-                          {t('newObservation')}
-                        </Button>
-                      )}
-                    </div>
-                  </section>
-                )}
-                <div className="cat-household-note">
-                  <p>
-                    {otherNames.length
-                      ? t('sharedWith', { names: otherNames.join(', ') })
-                      : t('ownHome')}
-                  </p>
-                  {!cat.archivedAt && (
-                    <Button variant="ghost" onClick={() => setView('home-link')}>
-                      {t('changeHome')}
-                    </Button>
-                  )}
-                </div>
-                <div className="cat-area-grid">
-                  {profileAreas.map((area) => (
-                    <section className="cat-area" key={area}>
-                      <div className="cat-area-title">
-                        <h3>{t(`areas.${area}`)}</h3>
-                        {!cat.archivedAt && (
-                          <Button
-                            variant="ghost"
-                            aria-label={`${t('edit')}: ${t(`areas.${area}`)}`}
-                            onClick={() => setView(area)}
-                          >
-                            {t('edit')}
-                          </Button>
-                        )}
-                      </div>
-                      <dl className="cat-data">
-                        {area === 'household' &&
-                          Object.entries(cat.household.facts).map(([key, value]) => (
-                            <div key={key}>
-                              <dt>{fields[key]}</dt>
-                              <dd>{options[value]}</dd>
-                            </div>
-                          ))}
-                        {profileFields[area].map((key) => {
-                          const value =
-                            area === 'home' && key !== 'access'
-                              ? cat.household.environment[key]
-                              : cat.attributes[key];
-                          return value ? (
-                            <div key={key}>
-                              <dt>{fields[key]}</dt>
-                              <dd>
-                                {['sex', 'neutered'].includes(key)
-                                  ? (options[value] ?? value)
-                                  : value}
-                              </dd>
-                            </div>
-                          ) : null;
-                        })}
-                      </dl>
-                      {area === 'history' ? (
-                        cat.events.length ? (
-                          cat.events.map((event) => (
-                            <p key={event.id}>
-                              <strong>{event.title}</strong> · {event.date}
-                              <br />
-                              {event.details}
-                            </p>
-                          ))
-                        ) : (
-                          <p className="hint">{t('notProvided')}</p>
-                        )
-                      ) : (
-                        area !== 'household' &&
-                        !profileFields[area].some(
-                          (key) =>
-                            (area === 'home' && key !== 'access'
-                              ? cat.household.environment
-                              : cat.attributes)[key],
-                        ) && <p className="hint">{t('notProvided')}</p>
-                      )}
-                    </section>
-                  ))}
-                </div>
-                {portrait && (
-                  <div id="portrait-results">
-                    {portrait.prefilledQuestions.includes('Q02') && (
-                      <div className="cat-prefill">
-                        <p>{t('prefilledTitle')}</p>
-                        <p className="hint">{t('prefilled')}</p>
-                        {!cat.archivedAt && (
-                          <Button variant="outline" onClick={() => editAnswer('Q02')}>
-                            {t('reviewHome')}
-                          </Button>
-                        )}
-                      </div>
                     )}
-                    <CatPortraitResult
-                      portrait={portrait}
-                      onEdit={cat.archivedAt ? undefined : editAnswer}
-                    />
                   </div>
-                )}
-                <div className="cat-actions cat-profile-footer">
-                  <Button variant="outline" onClick={() => setView('profile-history')}>
-                    {t('history')}
-                  </Button>
-                  {portrait && (
-                    <Button variant="outline" onClick={() => setView('portrait-history')}>
-                      {t('portraitHistory')}
-                    </Button>
-                  )}
-                  {!cat.archivedAt && (
+                </details>
+                {!cat.archivedAt && (
+                  <div className="cat-profile-footer">
                     <Button variant="ghost" onClick={() => setArchiveOpen(true)}>
                       {t('archive')}
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
               </>
             )}
           </>

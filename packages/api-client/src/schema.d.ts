@@ -320,7 +320,7 @@ export interface components {
             photoVersion: number;
             hasPhoto: boolean;
             attributes: {
-                [key: string]: string;
+                [key: string]: string | string[];
             };
             events: {
                 [key: string]: unknown;
@@ -349,7 +349,7 @@ export interface components {
                 [key: string]: unknown;
             };
             environment?: {
-                [key: string]: string;
+                [key: string]: string | string[];
             };
         };
         UpdateCatDto: {
@@ -357,7 +357,7 @@ export interface components {
             name?: string;
             photoDataUrl?: string | null;
             attributes?: {
-                [key: string]: string;
+                [key: string]: string | string[];
             };
             events?: {
                 [key: string]: unknown;
