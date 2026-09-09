@@ -122,11 +122,16 @@ export interface components {
             emailVerified: boolean;
         };
         AccountPreferencesDto: {
-            /**
-             * @default system
-             * @enum {string}
-             */
+            /** @enum {string} */
             themePreference: "system" | "light" | "dark";
+            /** @enum {string} */
+            languagePreference: "system" | "en" | "pl";
+        };
+        UpdateAccountPreferencesDto: {
+            /** @enum {string} */
+            themePreference?: "system" | "light" | "dark";
+            /** @enum {string} */
+            languagePreference?: "system" | "en" | "pl";
         };
         ExportedLoginMethodDto: {
             providerId: string;
@@ -142,6 +147,8 @@ export interface components {
             emailVerified: boolean;
             /** @enum {string} */
             themePreference: "system" | "light" | "dark";
+            /** @enum {string} */
+            languagePreference: "system" | "en" | "pl";
             /** Format: date-time */
             createdAt: string;
             accounts: components["schemas"]["ExportedLoginMethodDto"][];
@@ -272,7 +279,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AccountPreferencesDto"];
+                "application/json": components["schemas"]["UpdateAccountPreferencesDto"];
             };
         };
         responses: {

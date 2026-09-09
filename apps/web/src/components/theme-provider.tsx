@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { authClient } from '@/lib/auth-client';
 import { isThemePreference, type ThemePreference } from '@/lib/theme';
 
@@ -47,6 +55,11 @@ export function ThemeProvider({
   const revision = useRef(0);
   const saving = useRef(false);
   const refreshRef = useRef<() => void>(() => {});
+
+  useLayoutEffect(() => {
+    // A language refresh may carry an older server snapshot than a recent theme save.
+    document.documentElement.dataset.theme = preference;
+  }, [initialPreference, preference]);
 
   function apply(next: ThemePreference) {
     document.documentElement.dataset.theme = next;
@@ -97,7 +110,7 @@ export function ThemeProvider({
   }, [userId, isPending, sessionError]);
 
   async function save(next: ThemePreference) {
-    if (saving.current || !ready) throw new Error('Please wait for your appearance settings.');
+    if (saving.current || !ready) throw new Error('wait');
     saving.current = true;
     const requestRevision = ++revision.current;
     try {
@@ -108,18 +121,14 @@ export function ThemeProvider({
       });
       if (!response.ok)
         throw new Error(
-          response.status === 401 || response.status === 403
-            ? 'Please sign in again to change your appearance.'
-            : 'Could not save your appearance. Please try again.',
+          response.status === 401 || response.status === 403 ? 'signInAgain' : 'saveError',
         );
       const data = await response.json();
-      if (!isThemePreference(data.themePreference)) throw new Error('Please try again.');
+      if (!isThemePreference(data.themePreference)) throw new Error('saveError');
       if (requestRevision === revision.current) apply(data.themePreference);
     } catch (error) {
       throw new Error(
-        error instanceof Error && error.name === 'Error'
-          ? error.message
-          : 'Could not save your appearance. Please try again.',
+        error instanceof Error && error.name === 'Error' ? error.message : 'saveError',
         { cause: error },
       );
     } finally {

@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
-import { initialTheme } from '@/lib/initial-theme';
-export const metadata: Metadata = {
+import { initialPreferences } from '@/lib/initial-preferences';
+import { LocaleProvider } from '@/components/locale-provider';
+import { getLocale, getTranslations } from 'next-intl/server';
+const baseMetadata: Metadata = {
   title: 'Cat Care',
   description: 'A thoughtful space for you and your cat.',
   robots: { index: false, follow: false },
@@ -15,13 +17,24 @@ export const metadata: Metadata = {
     ],
   },
 };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Common');
+  return { ...baseMetadata, description: t('description') };
+}
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0f62fe' };
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const preference = await initialTheme();
+  const preference = await initialPreferences();
+  const locale = await getLocale();
   return (
-    <html lang="en" data-theme={preference}>
+    <html lang={locale} data-theme={preference.theme}>
       <body>
-        <ThemeProvider initialPreference={preference}>{children}</ThemeProvider>
+        <LocaleProvider
+          initialLocale={locale}
+          initialPreference={preference.language}
+          initialSignedIn={preference.signedIn}
+        >
+          <ThemeProvider initialPreference={preference.theme}>{children}</ThemeProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

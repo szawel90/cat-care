@@ -1,27 +1,30 @@
 import Image from 'next/image';
+import { getTranslations } from 'next-intl/server';
 import { HomeHeader } from '@/components/home-header';
 import { InstallApp } from '@/components/install-app';
 
 const articles = [
-  { title: 'A place to feel at home', category: 'Everyday life', image: '/article-home.svg' },
-  { title: 'A little time to play', category: 'Time together', image: '/article-play.svg' },
-  { title: 'The art of slowing down', category: 'Quiet moments', image: '/article-rest.svg' },
-];
+  { title: 'homeTitle', category: 'homeCategory', image: '/article-home.svg' },
+  { title: 'playTitle', category: 'playCategory', image: '/article-play.svg' },
+  { title: 'restTitle', category: 'restCategory', image: '/article-rest.svg' },
+] as const;
 
-export default function Home() {
+export default async function Home() {
+  const t = await getTranslations('Home');
+  const common = await getTranslations('Common');
   return (
     <>
       <a className="skip-link" href="#main-content">
-        Skip to main content
+        {common('skip')}
       </a>
       <HomeHeader />
       <main id="main-content" tabIndex={-1} className="home-workspace">
         <div className="home-intro">
-          <p className="eyebrow">Life with your cat</p>
-          <h1>A little closer, every day.</h1>
-          <p className="subtitle">Stories, ideas and small moments to share.</p>
+          <p className="eyebrow">{t('eyebrow')}</p>
+          <h1>{t('title')}</h1>
+          <p className="subtitle">{t('description')}</p>
         </div>
-        <section className="article-grid" aria-label="Articles">
+        <section className="article-grid" aria-label={t('articles')}>
           {articles.map((article) => (
             <article className="article-card" key={article.title}>
               <div className="article-art">
@@ -34,8 +37,8 @@ export default function Home() {
                 />
               </div>
               <div className="article-copy">
-                <p className="eyebrow">{article.category}</p>
-                <h2>{article.title}</h2>
+                <p className="eyebrow">{t(article.category)}</p>
+                <h2>{t(article.title)}</h2>
                 <p>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
                   incididunt ut labore et dolore magna aliqua.

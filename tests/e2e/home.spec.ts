@@ -1,7 +1,9 @@
-import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
+import { type APIRequestContext, type Page } from '@playwright/test';
+import { test, expect } from './fixtures';
 import AxeBuilder from '@axe-core/playwright';
 
 async function accessible(page: Page) {
+  await expect(page).toHaveTitle('Cat Care');
   const google = page.getByRole('button', { name: 'Continue with Google', exact: true });
   if (await google.count()) {
     await expect(google).toBeEnabled();
