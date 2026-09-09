@@ -191,5 +191,575 @@
     "title": "Dodaj Cat Care do ekranu głównego",
     "help": "Na iPhonie otwórz stronę w Safari, wybierz Udostępnij, a potem Do ekranu początkowego. Na Androidzie użyj opcji Zainstaluj aplikację lub Dodaj do ekranu głównego w menu przeglądarki. Korzystanie z konta wymaga połączenia z internetem.",
     "button": "Zainstaluj Cat Care"
+  },
+  "Cats": {
+    "yourCats": "Twoje koty",
+    "addCat": "Dodaj kota",
+    "addFirst": "Dodaj pierwszego kota",
+    "addAnother": "Dodaj kolejnego kota",
+    "selectedCat": "Wybrany kot",
+    "chooseCat": "Wybierz kota",
+    "empty": "Tutaj pojawią się profile twoich kotów.",
+    "nameOnly": "Na początek wystarczy imię. Pozostałe informacje uzupełnisz później.",
+    "name": "Imię kota",
+    "photo": "Zdjęcie · opcjonalne",
+    "photoHelp": "JPEG, PNG lub WebP. Zdjęcie zostanie dopasowane do profilu.",
+    "removePhoto": "Wycofaj bieżące zdjęcie",
+    "save": "Zapisz",
+    "saveCat": "Zapisz kota",
+    "saving": "Zapisywanie…",
+    "cancel": "Anuluj",
+    "back": "Wróć do profilu",
+    "edit": "Uzupełnij lub zmień",
+    "editIdentity": "Zmień imię lub zdjęcie",
+    "loading": "Wczytywanie kotów…",
+    "retry": "Spróbuj ponownie",
+    "unknown": "Nie wiem / nie podano",
+    "notProvided": "Jeszcze nie uzupełniono",
+    "optional": "Wszystkie informacje w tym obszarze są opcjonalne.",
+    "livesWith": "Mieszka razem z {name}",
+    "separateHome": "Mieszka w osobnym domu",
+    "homeChoice": "Dom kota",
+    "shareHelp": "Wspólny dom uzupełni informacje o otoczeniu. Zachowanie i charakter opiszesz osobno.",
+    "sharedWith": "Wspólny dom z: {names}",
+    "ownHome": "Osobny dom tego kota",
+    "changeHome": "Zmień powiązanie z domem",
+    "sharedHelp": "Te informacje dotyczą wspólnego domu. Zmiana będzie widoczna także u mieszkających tu kotów.",
+    "individualHelp": "Opis dotyczy wyłącznie tego kota.",
+    "prefilled": "Uzupełniono z zapisanych danych wspólnego domu. Możesz poprawić odpowiedź.",
+    "prefilledTitle": "Korzystamy ze wspólnych danych",
+    "reviewHome": "Sprawdź skład domu",
+    "summaryEmpty": "Dopiero poznajemy {name}. Uzupełniaj profil we własnym tempie.",
+    "summaryAge": "Wiek: {age}.",
+    "summaryGames": "Ulubiona zabawa według opiekuna: {games}.",
+    "summaryPortrait": "Opis z portretu: {headline}.",
+    "summaryPartial": "Opis opiera się na dotychczasowych informacjach.",
+    "archive": "Archiwizuj profil",
+    "restore": "Przywróć profil",
+    "archivedCats": "Archiwum kotów",
+    "archiveTitle": "Przenieść profil do archiwum?",
+    "archiveHelp": "Zachowamy dane, zdjęcia i całą historię. Profil będzie można przywrócić.",
+    "archived": "Profil w archiwum",
+    "archivedHelp": "Historia jest dostępna. Przywróć profil, aby dopisać nowe informacje.",
+    "portrait": "Koci portret",
+    "startPortrait": "Poznaj charakter kota",
+    "continuePortrait": "Kontynuuj portret",
+    "portraitIntro": "Opisz zachowanie, które wystąpiło naturalnie. Nie wywołuj nowych sytuacji specjalnie dla ankiety. Możesz odłożyć odpowiedź i wrócić po obserwacji.",
+    "portraitNote": "Wstępny opis obserwacji według naszych reguł; nie jest zwalidowanym testem osobowości.",
+    "period": "Okres obserwacji",
+    "periodStart": "Od",
+    "periodEnd": "Do",
+    "periodHelp": "Wybierz do 28 dni. Jeśli znasz kota krócej, podaj ten krótszy okres.",
+    "start": "Rozpocznij obserwację",
+    "newObservation": "Nowy okres obserwacji",
+    "newObservationHelp": "Nowy okres zaczyna osobny portret. Poprzednie odpowiedzi i wyniki pozostaną w historii.",
+    "saveAnswer": "Zapisz odpowiedź",
+    "saveAndContinue": "Zapisz i kontynuuj",
+    "defer": "Poobserwuję i odpowiem później",
+    "pending": "Czeka na obserwację",
+    "answerPending": "Uzupełnij odpowiedź",
+    "pendingHelp": "Portret jest już dostępny. Wróć do pytań, kiedy zaobserwujesz zachowanie w podanym okresie. Dla późniejszych obserwacji rozpocznij nowy okres.",
+    "progress": "Uzupełniono {done} z {total} pytań podstawowych. Czeka na obserwację: {pending}.",
+    "followupCount": "Doprecyzowania: {count} z maksymalnie 2.",
+    "clarification": "Krótkie doprecyzowanie",
+    "questionCount": "Pytanie {number}",
+    "target": "Wskaż jednego kota lub wpisz jego imię",
+    "targetAlias": "Imię lub robocze oznaczenie",
+    "otherCat": "tym drugim kotem",
+    "targetUnknown": "Nie potrafię teraz wskazać",
+    "answers": "Zapisane odpowiedzi",
+    "changeAnswer": "Zmień odpowiedź",
+    "noMoreQuestions": "Na ten moment wywiad jest zakończony. Poniżej znajdziesz portret i ewentualne pytania do obserwacji.",
+    "scales": "Obserwacje na skalach",
+    "maps": "Przekroje portretu",
+    "mapEmpty": "Brak dwóch ustalonych współrzędnych w tym przekroju.",
+    "mapHelp": "Punkt opisuje odpowiedzi, a odcinek lub prostokąt ich zakres. Puste miejsce oznacza brak ustalonej pozycji.",
+    "range": "Zakres odpowiedzi: {low}–{high}",
+    "point": "Pozycja: {value} na skali 0–4",
+    "observedOnly": "Obecnie używane miejsca; preferencja jeszcze nieustalona.",
+    "contextChanged": "Warunki zmieniły się po tej obserwacji. Wynik zachowuje wcześniejszy kontekst.",
+    "singleIndicator": "Wstępny obraz z jednej odpowiedzi",
+    "sourceAnswers": "Na podstawie odpowiedzi: {questions}",
+    "history": "Historia zmian",
+    "portraitHistory": "Historia portretu",
+    "recorded": "Zapisano {date}",
+    "version": "Wersja {number}",
+    "currentVersion": "Aktualna",
+    "superseded": "Zastąpiona {date}",
+    "showVersion": "Zobacz tę wersję",
+    "closeHistory": "Wróć do bieżącego profilu",
+    "historyHelp": "Poprzednie wartości pozostają w historii. Zmiana tworzy nową wersję.",
+    "catHistory": "Dane i powiązania kota",
+    "homeHistory": "Dane domów",
+    "eventTitle": "Co się wydarzyło?",
+    "eventDate": "Kiedy? Dokładnie lub w przybliżeniu",
+    "eventDetails": "Dodatkowe informacje",
+    "addEvent": "Dodaj wydarzenie",
+    "removeEvent": "Wycofaj wydarzenie z bieżącego opisu",
+    "saved": "Zapisano nową wersję.",
+    "signIn": "Zaloguj się, aby otworzyć profil kota.",
+    "missing": "Ten profil nie jest dostępny na twoim koncie.",
+    "areas": {
+      "about": "O mnie",
+      "home": "Mój dom",
+      "household": "Moi domownicy",
+      "routine": "Moja codzienność",
+      "preferences": "Co lubię i moje granice",
+      "health": "Zdrowie i sprawność",
+      "history": "Moja historia"
+    },
+    "fields": {
+      "age": "Wiek — dokładny lub przybliżony",
+      "sex": "Płeć",
+      "neutered": "Kastracja",
+      "origin": "Pochodzenie",
+      "homeSince": "Od kiedy w tym domu?",
+      "rooms": "Dostępne pomieszczenia",
+      "highPlaces": "Wysokie miejsca",
+      "shelters": "Kryjówki",
+      "restPlaces": "Miejsca odpoczynku w domu",
+      "litterBoxes": "Kuwety — liczba, rodzaj, rozmieszczenie",
+      "resources": "Jedzenie, woda i drapaki — rozmieszczenie",
+      "access": "Czy ten kot może swobodnie korzystać z miejsc?",
+      "relationships": "Relacje tego kota z domownikami",
+      "meals": "Jedzenie i rytm posiłków",
+      "play": "Rytm zabawy",
+      "rest": "Rytm odpoczynku",
+      "alone": "Czas bez opiekuna",
+      "outdoors": "Wychodzenie",
+      "games": "Ulubione zabawy",
+      "contact": "Lubiane sposoby kontaktu",
+      "handling": "Głaskanie, podnoszenie, czesanie",
+      "boundaries": "Granice i sytuacje, których unika",
+      "conditions": "Podane problemy zdrowotne",
+      "treatment": "Leczenie, leki lub znane alergie",
+      "mobility": "Zauważone ograniczenia lub zmiany sprawności",
+      "children": "Dzieci w domu lub regularnie bywające",
+      "dogs": "Psy",
+      "other_animals": "Pozostałe zwierzęta",
+      "totalCats": "Wszystkie koty w domu, także bez profilu"
+    },
+    "options": {
+      "yes": "Tak",
+      "no": "Nie",
+      "unknown": "Nie wiem",
+      "female": "Kotka",
+      "male": "Kot",
+      "one": "Jeden",
+      "two": "Dwa",
+      "three_or_more": "Co najmniej trzy"
+    },
+    "statuses": {
+      "not_started": "Portret jeszcze nierozpoczęty",
+      "awaiting_observation": "Portret do uzupełnienia",
+      "incomplete": "Portret częściowy",
+      "preliminary_portrait": "Wstępny portret",
+      "unknown": "Pozycja nieustalona",
+      "consistent_pair": "Dwie zbliżone odpowiedzi",
+      "single_indicator": "Jeden wskaźnik",
+      "varied": "Różny obraz odpowiedzi",
+      "context_dependent": "Zależne od sytuacji",
+      "observed_use_only": "Opis korzystania z miejsc"
+    },
+    "errors": {
+      "generic": "Nie udało się zapisać. Spróbuj ponownie.",
+      "load": "Nie udało się wczytać danych kotów.",
+      "conflict": "Dane zmieniły się w innym miejscu. Wróć do profilu i wczytaj aktualną wersję przed ponowną edycją.",
+      "invalid": "Sprawdź odpowiedź, daty i długość pól.",
+      "photo": "Nie udało się odczytać zdjęcia. Wybierz plik JPEG, PNG lub WebP do 10 MB.",
+      "access": "Brak dostępu do tych danych. Zaloguj się ponownie."
+    },
+    "reasons": {
+      "owner_reported_context_variation": "Opiekun wskazał różnice między sytuacjami.",
+      "different_item_profiles": "Odpowiedzi opisują różne zachowania.",
+      "reported_household_association": "Zaobserwowano związek z obecnością domownika.",
+      "choice_unavailable_or_unknown": "Brak potwierdzonego swobodnego wyboru miejsc.",
+      "calm_rest_not_sufficiently_reported": "Za mało informacji o spokojnym odpoczynku.",
+      "health_or_mobility_context": "Uwzględniamy okres zdrowia, leczenia lub trudności w poruszaniu.",
+      "no_observed_target_relationship": "Brak opisanej relacji z konkretnym drugim kotem."
+    },
+    "headlines": {
+      "energetic_companion": "Energiczny kompan",
+      "calm_companion": "Kompan o spokojnym rytmie",
+      "independent_explorer": "Odkrywca we własnym rytmie"
+    },
+    "changes": {
+      "created": "Utworzono profil",
+      "profile_updated": "Zmieniono dane profilu",
+      "home_changed": "Zmieniono dom kota",
+      "archived": "Zarchiwizowano profil",
+      "restored": "Przywrócono profil",
+      "member_joined": "Powiązano kota z domem",
+      "member_left": "Kot przeniesiony do innego domu",
+      "member_archived": "Zarchiwizowano kota w tym domu",
+      "member_restored": "Przywrócono kota w tym domu",
+      "facts_updated": "Zmieniono informacje o domu",
+      "interview_context_updated": "Uzupełniono skład domu w wywiadzie",
+      "member_renamed": "Zmieniono imię kota w domu"
+    },
+    "questionnaire": {
+      "questions": {
+        "Q01": {
+          "text": "Jak dobrze ostatnie 4 tygodnie oddają zwykłe zachowanie kota?",
+          "help": "Odpowiedz o ostatnich 4 tygodniach. Jeśli znasz kota krócej, opisuj tylko ten okres. Nie mieszaj zachowania sprzed zmiany z obecnym.",
+          "options": {
+            "usual": "Znam kota co najmniej 4 tygodnie; ten okres jest dla niego zwyczajny",
+            "changed": "Ostatnio jego zachowanie lub warunki życia wyraźnie się zmieniły",
+            "health": "To okres choroby, leczenia lub widocznych trudności w poruszaniu się",
+            "short": "Znam kota krócej niż 4 tygodnie",
+            "unknown": "Nie potrafię ocenić",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q02": {
+          "text": "Kto poza dorosłymi opiekunami mieszka z kotem lub regularnie bywa w domu?",
+          "help": "Zaznacz pasujące grupy. To jedno pytanie o skład otoczenia. Nie potrzebujemy imion dzieci, ich dokładnego wieku ani danych osobowych.",
+          "options": {
+            "children": "Dziecko lub dzieci",
+            "one_cat": "Jeden inny kot",
+            "multiple_cats": "Co najmniej dwa inne koty",
+            "dogs": "Pies lub psy",
+            "other_animals": "Inne zwierzęta, np. królik, ptaki lub gryzonie",
+            "none": "Żadna z tych grup",
+            "unknown": "Nie mam pełnych informacji",
+            "deferred": "Uzupełnię później"
+          }
+        },
+        "Q03": {
+          "text": "Z czyją obecnością najłatwiej powiązać zauważalną różnicę w zachowaniu kota?",
+          "help": "Porównuj tylko sytuacje, które wydarzyły się naturalnie. Różnica może oznaczać także więcej zabawy lub kontaktu. Jeśli dotyczy kilku grup, wybierz odpowiedź o kilku grupach.",
+          "options": {
+            "none": "Nie zauważam takiej różnicy",
+            "children": "Dzieci",
+            "cats": "Innego kota lub kotów",
+            "dogs": "Psa lub psów",
+            "other_animals": "Innych zwierząt",
+            "adults": "Konkretnego dorosłego lub gości",
+            "several": "Kilku grup — trudno wskazać jedną",
+            "unknown": "Nie mam porównania lub nie potrafię ocenić",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q04": {
+          "text": "Jak często kot sam rozpoczyna zabawę, gdy jest obudzony i ma dostęp do swoich zabawek?",
+          "help": "Np. sam rusza za piłką lub zaczyna bawić się przedmiotem. Brak zabawek lub okazji to brak obserwacji, a nie odpowiedź „nigdy”.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q05": {
+          "text": "Jak często podejmuje zabawę, gdy spokojnie proponujesz mu znaną zabawkę, kiedy jest obudzony?",
+          "help": "Oceń rozpoczęcie zabawy, nie długość sesji. Nie licz budzenia kota, natarczywego zachęcania ani zabaw przerywanych przez domowników.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q06": {
+          "text": "Jak często kot odsuwa się lub chowa, gdy znajomy domownik przechodzi obok, nie kierując się do niego?",
+          "help": "Nie licz odsuwania się podczas dotykania, podnoszenia, gonienia ani zwykłego robienia miejsca na przejście. Przy wyraźnych różnicach między domownikami wybierz „zależnie od sytuacji”.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q07": {
+          "text": "Jak często kot przerywa zajęcie i odchodzi lub chowa się po zwykłym odgłosie domu?",
+          "help": "Np. po zamknięciu szafki albo odsunięciu krzesła. Samo odwrócenie głowy się nie liczy. Nie oceniaj alarmu, remontu ani celowego straszenia.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q08": {
+          "text": "Jak często kot sam podchodzi do ciebie po przyjazny kontakt poza porą podawania jedzenia?",
+          "help": "Np. podchodzi i ociera się lub trąca cię głową. Wszystkie odpowiedzi w tej parze dotyczą ciebie, osoby wypełniającej ankietę — nie średniej z całej rodziny.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q09": {
+          "text": "Jak często kot wybiera odpoczynek blisko ciebie, gdy dostępne jest też wygodne miejsce dalej od ciebie?",
+          "help": "Blisko oznacza na wyciągnięcie ręki; kot nie musi leżeć na kolanach. Oceń swobodny wybór, bez przytrzymywania i bez zachęcania jedzeniem.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q10": {
+          "text": "Jak często kot sam rozpoczyna przyjazny kontakt z {other_cat}?",
+          "help": "Np. podchodzi i ociera się o tego kota albo zaczyna go wylizywać. Samo jedzenie obok siebie lub zajmowanie tej samej kanapy nie wystarcza. Pytania Q10–Q11 dotyczą tego samego kota.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q11": {
+          "text": "Jak często kot zwiększa dystans, gdy {other_cat} pojawia się w pobliżu?",
+          "help": "Np. odchodzi do innego pokoju, zmienia trasę lub wskakuje wyżej, aby uniknąć zbliżenia. Nie licz naprzemiennego pościgu w zabawie ani zwykłego przechodzenia obok siebie.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q12": {
+          "text": "Jak często kot z własnej inicjatywy podchodzi obejrzeć lub obwąchać nowy, nieruchomy przedmiot pozostawiony w pokoju?",
+          "help": "Tylko przedmioty, które już naturalnie pojawiały się w domu i były dostępne dla kota. Nie licz zabawek poruszanych przez człowieka ani przedmiotów z jedzeniem. Odmowa podejścia nie dowodzi lęku.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q13": {
+          "text": "Jak często kot sam bada nowo dostępne miejsce w znanym domu?",
+          "help": "Np. otwartą wcześniej zamkniętą część pokoju lub pustą półkę, jeśli taka sytuacja już się zdarzyła. Bez wkładania kota do środka, wabienia jedzeniem i obecności kogoś blokującego dostęp.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q14": {
+          "text": "Jak często przed pierwszym kęsem znanego posiłku kot zatrzymuje się, aby sprawdzić jedzenie?",
+          "help": "Chodzi o zauważalną przerwę na oglądanie lub obwąchiwanie już przy misce, gdy normalnie je o tej porze i nikt mu nie przeszkadza. Nie oceniaj tempa zjadania całej porcji ani prób nowej karmy. Jeśli nie ma takich spokojnych posiłków, wybierz brak okazji.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q15": {
+          "text": "Na jakiej wysokości kot zwykle odpoczywa, kiedy sam wybiera miejsce?",
+          "help": "Oceń wybór miejsc, nie umiejętność skakania. „Wyżej” obejmuje siedzisko, oparcie mebla, parapet i półkę. Wynik opisuje, jak często wybiera miejsca ponad podłogą, a nie ich wysokość w centymetrach.",
+          "options": {
+            "floor": "Prawie zawsze na poziomie podłogi",
+            "mostly_floor": "Przeważnie na poziomie podłogi",
+            "balanced": "Mniej więcej równie często na podłodze i wyżej",
+            "mostly_elevated": "Przeważnie na meblach, parapetach lub półkach",
+            "elevated": "Prawie zawsze ponad podłogą",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q16": {
+          "text": "Jakie osłonięcie mają miejsca, które kot zwykle wybiera do odpoczynku?",
+          "help": "Osłonięte to np. budka, miejsce pod meblem lub za rośliną; otwarte to np. odsłonięty dywan albo otwarta półka. Oparcie kanapy może być wysoko i jednocześnie otwarte.",
+          "options": {
+            "covered": "Prawie zawsze wybiera osłonięte miejsca",
+            "mostly_covered": "Przeważnie osłonięte",
+            "balanced": "Podobnie często osłonięte i otwarte",
+            "mostly_open": "Przeważnie otwarte",
+            "open": "Prawie zawsze otwarte",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q17": {
+          "text": "Jakie alternatywne miejsca odpoczynku są dla kota rzeczywiście dostępne?",
+          "help": "Jedna odpowiedź opisuje zestaw dostępnych możliwości. Uwzględnij zamknięte drzwi, trudność wejścia oraz zajmowanie lub blokowanie miejsca przez ludzi i zwierzęta.",
+          "options": {
+            "both": "Ma wybór: nisko i wyżej oraz osłonięte i otwarte",
+            "height_only": "Ma wybór wysokości, ale tylko jeden rodzaj osłonięcia",
+            "cover_only": "Ma wybór osłonięcia, ale tylko jeden poziom wysokości",
+            "neither": "Ma dostęp tylko do jednego rodzaju miejsca",
+            "unknown": "Nie potrafię ocenić swobody wyboru",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "Q18": {
+          "text": "Jak często w wybieranych miejscach odpoczynku kot rozluźnia ciało i spokojnie zasypia?",
+          "help": "Oceń powtarzający się obraz zachowania. Samo leżenie bez ruchu nie wystarcza. Jeśli kot stale obserwuje otoczenie, jest skulony lub zaraz odchodzi, nie zaliczaj tego jako spokojnego zasypiania. Ten wskaźnik nie jest osobną diagnozą stresu.",
+          "options": {
+            "never": "Nigdy lub prawie nigdy",
+            "rarely": "Rzadko — w mniejszości takich sytuacji",
+            "sometimes": "Mniej więcej w połowie takich sytuacji",
+            "often": "Często — w większości takich sytuacji",
+            "almost_always": "Zawsze lub prawie zawsze",
+            "unobserved": "Nie było okazji tego zaobserwować",
+            "unknown": "Nie potrafię ocenić",
+            "contextual": "Wyraźnie różnie, zależnie od sytuacji",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "F_TARGET": {
+          "text": "Którego z pozostałych kotów opiszesz w tej krótkiej ankiecie?",
+          "help": "Wybierz jednego kota z listy; jeśli nie jest zapisany, wystarczy robocze oznaczenie, np. Kot B. Nie wybieramy go automatycznie. Pozostałe relacje zostaną nieopisane.",
+          "options": {}
+        },
+        "F_CONTEXT": {
+          "text": "Co przede wszystkim zmienia się w zachowaniu kota przy {group}?",
+          "help": "Wybierz jeden najczytelniejszy obraz. Przy kilku rodzajach zmian zaznacz „kilka”. Związek z obecnością nie przesądza o przyczynie.",
+          "options": {
+            "play_more": "Częściej się bawi",
+            "contact_more": "Częściej szuka bliskości z człowiekiem",
+            "withdraw": "Częściej odchodzi lub się chowa",
+            "space": "Zmienia miejsca odpoczynku lub trasy przemieszczania",
+            "food": "Inaczej zachowuje się przy jedzeniu",
+            "several": "Kilka z tych rzeczy",
+            "unknown": "Trudno wskazać konkretną zmianę",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "F_SPACE": {
+          "text": "Który opis najlepiej pasuje do korzystania z miejsc odpoczynku?",
+          "help": "To doprecyzowanie warunków. Nie dolicza punktów do ostrożności i nie zastępuje obserwacji swobodnego odpoczynku.",
+          "options": {
+            "access": "Dostęp do innych miejsc jest ograniczony lub blokowany",
+            "retreat": "Kot trafia tam przede wszystkim po odsunięciu się od kogoś",
+            "mobility": "Zauważam trudność we wchodzeniu lub skakaniu",
+            "varied": "Zdarza się zarówno spokojny odpoczynek, jak i wycofywanie się",
+            "unknown": "Nie potrafię rozstrzygnąć",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        },
+        "F_VARIATION": {
+          "text": "W odpowiedziach o {axis} widać różny obraz. Z czym to się wiąże?",
+          "help": "Obie odpowiedzi mogą być prawidłowe. Nie dopasowuj ich na siłę do siebie.",
+          "options": {
+            "different_contexts": "To różne sytuacje — w każdej zachowuje się inaczej",
+            "varies_same_context": "Nawet w podobnych warunkach zachowanie jest zmienne",
+            "unknown": "Nie wiem, skąd ta różnica",
+            "deferred": "Poobserwuję i odpowiem później"
+          }
+        }
+      },
+      "axes": {
+        "activity": {
+          "label": "Rytm dnia",
+          "low": "Spokojniejszy rytm",
+          "high": "Często podejmuje zabawę"
+        },
+        "caution": {
+          "label": "Ostrożność",
+          "low": "Rzadko się wycofuje",
+          "high": "Często się wycofuje"
+        },
+        "human_contact": {
+          "label": "Bliskość z ludźmi",
+          "low": "Rzadziej szuka bliskości",
+          "high": "Często szuka bliskości"
+        },
+        "cat_affiliation": {
+          "label": "Relacje z kotami — przyjazny kontakt",
+          "low": "Rzadko inicjuje",
+          "high": "Często inicjuje"
+        },
+        "cat_distancing": {
+          "label": "Relacje z kotami — zwiększanie dystansu",
+          "low": "Rzadko zwiększa dystans",
+          "high": "Często zwiększa dystans"
+        },
+        "exploration": {
+          "label": "Odkrywanie nowości",
+          "low": "Rzadziej sam sprawdza",
+          "high": "Często sam sprawdza"
+        },
+        "food_inspection": {
+          "label": "Przy misce — sprawdzanie posiłku",
+          "low": "Zwykle zaczyna bez przerwy",
+          "high": "Zwykle najpierw sprawdza"
+        },
+        "height": {
+          "label": "Przestrzeń — wysokość",
+          "low": "Na poziomie podłogi",
+          "high": "Ponad podłogą"
+        },
+        "openness": {
+          "label": "Przestrzeń — osłonięcie",
+          "low": "Osłonięte miejsca",
+          "high": "Otwarte miejsca"
+        }
+      }
+    },
+    "usualBasis": "Opis zwykłego zachowania według opiekuna w podanym okresie obserwacji.",
+    "snapshotBasis": "To obraz zachowania w podanym okresie. Nie traktujemy go jako ustalonej, trwałej cechy.",
+    "scopeUnresolved": "Zakres relacji z innymi kotami jest jeszcze nieustalony. Liczba potrzebnych pytań może się zmienić po uzupełnieniu danych domu lub wskazaniu kota.",
+    "relationshipNotes": {
+      "little_affiliation_and_little_distancing": "W tej relacji rzadko opisano zarówno inicjowanie przyjaznego kontaktu, jak i zwiększanie dystansu.",
+      "frequent_affiliation_and_little_distancing": "W tej relacji często opisano przyjazny kontakt, a rzadko zwiększanie dystansu.",
+      "affiliation_and_distancing_coexist": "W tej relacji współwystępują przyjazny kontakt i zwiększanie dystansu.",
+      "little_affiliation_and_frequent_distancing": "W tej relacji rzadko opisano inicjowanie przyjaznego kontaktu, a często zwiększanie dystansu."
+    }
   }
 }

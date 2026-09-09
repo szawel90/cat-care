@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TabsContent } from '@/components/ui/tabs';
+import { ActiveCatPicker } from './cats-provider';
+import { YourCats } from './cat-cards';
 import { AccountMenu } from './account-menu';
 import { EmailField, PasswordField } from './account-fields';
 import { Feedback } from './feedback';
@@ -198,7 +200,11 @@ export function AccountApp({ view }: { view: View }) {
       <a className="skip-link" href="#main-content">
         {t('skip')}
       </a>
-      <header className="site-header">
+      <header
+        className={
+          view === 'account' && user && !sessionError ? 'site-header has-cat-picker' : 'site-header'
+        }
+      >
         <Link
           href="/"
           prefetch={false}
@@ -223,6 +229,16 @@ export function AccountApp({ view }: { view: View }) {
           <Image src="/brand.svg" alt="" width={35} height={35} />
           cat care<span>.</span>
         </Link>
+        {view === 'account' && user && !sessionError && (
+          <ActiveCatPicker
+            disabled={busy}
+            beforeNavigate={async () => {
+              if (formDirty.current && !(await confirmDiscard())) return false;
+              formDirty.current = false;
+              return true;
+            }}
+          />
+        )}
         {view === 'account' && user && !sessionError ? (
           <AccountMenu
             user={user}
@@ -264,7 +280,11 @@ export function AccountApp({ view }: { view: View }) {
       <main
         id="main-content"
         tabIndex={-1}
-        className={view === 'account' ? 'workspace workspace-account' : 'workspace'}
+        className={
+          view === 'account'
+            ? `workspace workspace-account ${!settingsOpen ? 'workspace-cats' : ''}`
+            : 'workspace'
+        }
       >
         {view !== 'account' && (
           <aside className="story" aria-label={t('about')}>
@@ -481,19 +501,22 @@ export function AccountApp({ view }: { view: View }) {
                     {settingsOpen ? t('settingsDescription') : t('accountDescription')}
                   </p>
                   {!settingsOpen ? (
-                    <div className="account-overview">
-                      {feedback}
-                      <div className="account-top">
-                        <div className="avatar" aria-hidden="true">
-                          {user.name.charAt(0).toUpperCase()}
+                    <>
+                      <div className="account-overview">
+                        {feedback}
+                        <div className="account-top">
+                          <div className="avatar" aria-hidden="true">
+                            {user.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <strong>{user.name}</strong>
+                            <p className="account-email">{t('accountReady')}</p>
+                          </div>
                         </div>
-                        <div>
-                          <strong>{user.name}</strong>
-                          <p className="account-email">{t('accountReady')}</p>
-                        </div>
+                        <p className="hint">{t('openSettingsHint')}</p>
                       </div>
-                      <p className="hint">{t('openSettingsHint')}</p>
-                    </div>
+                      <YourCats />
+                    </>
                   ) : (
                     <AccountSettingsTabs
                       value={tab!}

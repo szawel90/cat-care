@@ -48,8 +48,8 @@ describe('Health endpoints', () => {
     await request(app.getHttpServer()).get('/health/ready').expect(503, { status: 'not_ready' });
   });
 
-  it('does not expose unimplemented domain routes', async () => {
-    await request(app.getHttpServer()).get('/v1/cats').expect(404);
+  it('requires authentication for cat profiles', async () => {
+    await request(app.getHttpServer()).get('/v1/cats').expect(401);
   });
 
   it('exports the real unprefixed health routes and failure response', () => {

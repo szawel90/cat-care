@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { CatsProvider } from '@/components/cats-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 import { initialPreferences } from '@/lib/initial-preferences';
 import { LocaleProvider } from '@/components/locale-provider';
@@ -33,7 +34,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           initialPreference={preference.language}
           initialSignedIn={preference.signedIn}
         >
-          <ThemeProvider initialPreference={preference.theme}>{children}</ThemeProvider>
+          <ThemeProvider initialPreference={preference.theme}>
+            <CatsProvider>{children}</CatsProvider>
+          </ThemeProvider>
         </LocaleProvider>
       </body>
     </html>

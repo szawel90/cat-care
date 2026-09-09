@@ -1,7 +1,7 @@
 export async function proxyApi(request: Request): Promise<Response> {
   const incoming = new URL(request.url);
-  const path = incoming.pathname.startsWith('/api/account')
-    ? incoming.pathname.replace(/^\/api\/account/, '/v1/account')
+  const path = /^\/api\/(account|cats)(?:\/|$)/.test(incoming.pathname)
+    ? incoming.pathname.replace(/^\/api\/(account|cats)/, '/v1/$1')
     : incoming.pathname;
   const target = new URL(
     path + incoming.search,
@@ -22,7 +22,9 @@ export async function proxyApi(request: Request): Promise<Response> {
     const response = await fetch(target, {
       method: request.method,
       headers,
-      ...(request.method === 'POST' ? { body: await request.text() } : {}),
+      ...(['POST', 'PATCH', 'DELETE'].includes(request.method)
+        ? { body: await request.text() }
+        : {}),
       redirect: 'manual',
       cache: 'no-store',
       signal: AbortSignal.timeout(15_000),

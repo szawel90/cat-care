@@ -49,6 +49,8 @@ model User {
   sessions           AuthSession[]
   accessApproval     AccessApproval?
   emailActions       EmailAction[]
+  cats               Cat[]
+  households         Household[]
 }
 
 model AuthAccount {
@@ -121,4 +123,97 @@ model EmailAction {
   expiresAt   DateTime
 
   @@index([userId])
+}
+
+model Household {
+  id        String             @id @default(uuid()) @db.Uuid
+  ownerId   String             @db.Uuid
+  owner     User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  version   Int                @default(0)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  cats      Cat[]
+  versions  HouseholdVersion[]
+
+  @@unique([id, ownerId])
+  @@index([ownerId])
+}
+
+model HouseholdVersion {
+  id           String    @id @default(uuid()) @db.Uuid
+  householdId  String    @db.Uuid
+  household    Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  version      Int
+  facts        Json
+  environment  Json
+  members      Json
+  changeKind   String
+  isCurrent    Boolean   @default(true)
+  recordedAt   DateTime  @default(now())
+  supersededAt DateTime?
+
+  @@unique([householdId, version])
+}
+
+model Cat {
+  id               String             @id @default(uuid()) @db.Uuid
+  ownerId          String             @db.Uuid
+  owner            User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  householdId      String             @db.Uuid
+  household        Household          @relation(fields: [householdId, ownerId], references: [id, ownerId], onDelete: Cascade)
+  version          Int                @default(0)
+  portraitRevision Int                @default(0)
+  archivedAt       DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  portraits        PortraitRevision[]
+  versions         CatVersion[]
+
+  @@index([ownerId])
+  @@index([householdId, ownerId])
+}
+
+model CatVersion {
+  id           String    @id @default(uuid()) @db.Uuid
+  catId        String    @db.Uuid
+  cat          Cat       @relation(fields: [catId], references: [id], onDelete: Cascade)
+  version      Int
+  name         String    @db.VarChar(60)
+  householdId  String    @db.Uuid
+  photo        Bytes?
+  photoVersion Int       @default(0)
+  attributes   Json
+  events       Json
+  archived     Boolean   @default(false)
+  changeKind   String
+  isCurrent    Boolean   @default(true)
+  recordedAt   DateTime  @default(now())
+  supersededAt DateTime?
+
+  @@unique([catId, version])
+}
+
+model PortraitRevision {
+  id                 String   @id @default(uuid()) @db.Uuid
+  catId              String   @db.Uuid
+  cat                Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
+  revision           Int
+  assessmentId       String   @db.Uuid
+  respondentId       String   @db.Uuid
+  rulesVersion       String
+  periodStart        DateTime @db.Date
+  periodEnd          DateTime @db.Date
+  answers            Json
+  followups          Json
+  issuedFollowups    Json
+  householdSnapshot  Json
+  prefilledQuestions Json
+  result             Json
+  isCurrent          Boolean  @default(true)
+  recordedAt         DateTime @default(now())
+  supersededAt       DateTime?
+  contextChangedAt   DateTime?
+
+  @@unique([catId, revision])
+  @@index([catId, assessmentId])
 }
